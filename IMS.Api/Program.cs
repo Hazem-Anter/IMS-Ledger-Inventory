@@ -1,4 +1,6 @@
 
+using IMS.Infrastructure;
+
 namespace IMS.Api
 {
     public class Program
@@ -13,6 +15,9 @@ namespace IMS.Api
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            // Add Infrastructure Services 
+            builder.Services.AddInfrastructureServices(builder.Configuration);
 
             var app = builder.Build();
 
