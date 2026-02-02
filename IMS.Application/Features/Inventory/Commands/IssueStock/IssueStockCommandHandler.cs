@@ -1,0 +1,89 @@
+﻿
+using IMS.Application.Abstractions.Persistence;
+using IMS.Application.Common.Result;
+using IMS.Domain.Entities;
+using MediatR;
+
+namespace IMS.Application.Features.Inventory.Commands.IssueStock
+{
+    public sealed class IssueStockCommandHandler : IRequestHandler<IssueStockCommand, Result<int>>
+    {
+        private readonly IRepository<Product> _products;
+        private readonly IRepository<Warehouse> _warehouses;
+        private readonly IRepository<Location> _locations;
+        private readonly IRepository<StockTransaction> _Transactions;
+        private readonly IRepository<StockBalance> _balances;
+        private readonly IUnitOfWork _uow;
+
+        public IssueStockCommandHandler(
+            IRepository<Product> products,
+            IRepository<Warehouse> warehouses,
+            IRepository<Location> locations,
+            IRepository<StockTransaction> transactions,
+            IRepository<StockBalance> balances,
+            IUnitOfWork uow)
+        {
+            _products = products;
+            _warehouses = warehouses;
+            _locations = locations;
+            _Transactions = transactions;
+            _balances = balances;
+            _uow = uow;
+        }
+
+        public async Task<Result<int>> Handle(IssueStockCommand cmd, CancellationToken ct)
+        {
+            // 1) Validation - check if product, warehouse, location exist and if sufficient stock is available
+            if(cmd.Quantity <= 0)
+                return Result<int>.Fail("Quantity must be greater than zero.");
+
+            if(!await _products.AnyAsync(p => p.Id == cmd.ProductId, ct))
+                return Result<int>.Fail("Product not found");
+
+            if(!await _warehouses.AnyAsync(w => w.Id == cmd.WarehouseId, ct))
+                return Result<int>.Fail("Warehouse not found");
+
+            if(cmd.LocationId is not null)
+                if(!await _locations.AnyAsync(l => l.Id == cmd.LocationId 
+                                                    && l.WarehouseId == cmd.WarehouseId
+                                                    , ct))
+                    return Result<int>.Fail("Location not found in this Warehouse");
+
+            // 2) Get current stock balance to check availability 
+            var balance = await _balances.FirstOrDefaultAsync(
+                    b => b.ProductId == cmd.ProductId
+                    && b.WarehouseId == cmd.WarehouseId
+                    && b.LocationId == cmd.LocationId, ct);
+             
+            if(balance is null)
+                return Result<int>.Fail("No stock available in this Location to issue.");
+
+            try
+            {
+                balance.ApplyDelta(-cmd.Quantity);
+            }
+            catch
+            {
+                return Result<int>.Fail("No enough stock.");
+            }
+
+            // 3) Create stock transaction record
+            var tx = StockTransaction.CreateOut(
+                cmd.ProductId,
+                cmd.WarehouseId,
+                cmd.LocationId,
+                cmd.Quantity,
+                cmd.Referencetype,
+                cmd.ReferenceId
+                );
+
+            // 4) Add transaction 
+            await _Transactions.AddAsync(tx, ct);
+
+            // 5) Commit transaction
+            await _uow.SaveChangesAsync(ct);
+
+            return Result<int>.Ok(tx.Id);
+        }
+    }
+}

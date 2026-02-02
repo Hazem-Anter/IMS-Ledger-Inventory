@@ -17,7 +17,7 @@ namespace IMS.Domain.Entities
 
         public void SetName(string name)
         {
-            if(string.IsNullOrWhiteSpace(Name))
+            if(string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Warehouse name is required.", nameof(name));
 
             Name = name.Trim();

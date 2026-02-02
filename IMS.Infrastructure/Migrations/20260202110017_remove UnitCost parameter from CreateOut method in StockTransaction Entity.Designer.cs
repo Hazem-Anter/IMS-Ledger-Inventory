@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260201144628_initialCreate")]
-    partial class initialCreate
+    [Migration("20260202110017_remove UnitCost parameter from CreateOut method in StockTransaction Entity")]
+    partial class removeUnitCostparameterfromCreateOutmethodinStockTransactionEntity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -198,9 +198,9 @@ namespace IMS.Infrastructure.Migrations
                     b.Property<int>("QuantityDelta")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ReferenceId")
+                    b.Property<string>("ReferenceId")
                         .HasMaxLength(100)
-                        .HasColumnType("int");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ReferenceType")
                         .HasMaxLength(50)

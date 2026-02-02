@@ -20,7 +20,7 @@ namespace IMS.Domain.Entities
 
         // reference to the source of the transaction (e.g., PurchaseOrder, SalesOrder, etc.)
         public string? ReferenceType { get; private set; }
-        public int? ReferenceId { get; private set; }
+        public string? ReferenceId { get; private set; }
 
         // navigation properties for EF Core 
         public Product? Product { get; private set; }
@@ -28,7 +28,7 @@ namespace IMS.Domain.Entities
         public Location? Location { get; private set; }
 
         private StockTransaction() { }
-        public StockTransaction(
+        private StockTransaction(
             int productId,
             int warehouseId,
             int? locationId,
@@ -36,7 +36,7 @@ namespace IMS.Domain.Entities
             int quantityDelta,
             decimal? unitCost,
             string? referenceType,
-            int? referenceId)
+            string? referenceId)
         {
             if(productId <= 0) throw new ArgumentException("ProductId must be valid.", nameof(productId));
             if(warehouseId <= 0) throw new ArgumentException("WarehouseId must be valid.", nameof(warehouseId));
@@ -70,7 +70,7 @@ namespace IMS.Domain.Entities
             int quantity,
             decimal? unitCost = null,
             string? referenceType = null,
-            int? referenceId = null)
+            string? referenceId = null)
         {
             if (quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than zero for IN transactions.", nameof(quantity));
@@ -83,14 +83,13 @@ namespace IMS.Domain.Entities
             int warehouseId,
             int? locationId,
             int quantity,
-            decimal? unitCost = null,
             string? referenceType = null,
-            int? referenceId = null)
+            string? referenceId = null)
         {
             if (quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than zero for OUT transactions.", nameof(quantity));
 
-            return new StockTransaction(productId, warehouseId, locationId, StockTransactionType.Out, -quantity, unitCost, referenceType, referenceId);
+            return new StockTransaction(productId, warehouseId, locationId, StockTransactionType.Out, -quantity, unitCost:null, referenceType, referenceId);
         }
 
         public static StockTransaction CreateAdjust(
@@ -99,7 +98,7 @@ namespace IMS.Domain.Entities
             int? locationId,
             int deltaQuantity,
             string? referenceType = null,
-            int? referenceId = null)
+            string? referenceId = null)
         {
             // deltaQuantity can be + or -
             // + means increase stock, - means decrease stock

@@ -1,5 +1,7 @@
 ﻿
+using IMS.Application.Abstractions.Persistence;
 using IMS.Infrastructure.Persistence;
+using IMS.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +22,14 @@ namespace IMS.Infrastructure
             services.AddDbContext<AppDbContext>(options =>
                  options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
             /////////////////////////////////////////////////////////////////////
-            
+
+            /////////////////////////////////////////////////////////////////////
+            // Register generic repository and unit of work
+            /////////////////////////////////////////////////////////////////////
+            services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            /////////////////////////////////////////////////////////////////////
+
 
             return services;
         }
