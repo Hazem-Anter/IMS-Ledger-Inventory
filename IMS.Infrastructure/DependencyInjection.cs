@@ -37,6 +37,10 @@ namespace IMS.Infrastructure
             services.AddMemoryCache();
             services.AddScoped<ICacheService, MemoryCacheService>();
 
+            // Register cache versioning service for cache invalidation 
+            services.AddScoped<ICacheVersionService, MemoryCacheVersionService>();
+
+
             return services;
         }
     }

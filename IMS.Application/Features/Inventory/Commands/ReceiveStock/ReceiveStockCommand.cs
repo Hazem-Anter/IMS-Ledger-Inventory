@@ -1,4 +1,5 @@
-﻿using IMS.Application.Common.Result;
+﻿using IMS.Application.Abstractions.Caching;
+using IMS.Application.Common.Results;
 using MediatR;
 
 namespace IMS.Application.Features.Inventory.Commands.ReceiveStock
@@ -12,7 +13,10 @@ namespace IMS.Application.Features.Inventory.Commands.ReceiveStock
         string? ReferenceType = null,
         string? ReferenceId = null
 
-        ) : IRequest<Result<int>>;
+        ) : IRequest<Result<int>>, IInvalidatesCachePrefix
+    {
+        public IEnumerable<string> CachePrefixesToInvalidate => new[] { "stock-overview" };
+    }
     // returns the new StockTransaction Id
     // IRequest take a single type parameter for the response type 
 

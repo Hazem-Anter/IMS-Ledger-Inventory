@@ -1,6 +1,6 @@
 ﻿
 using IMS.Application.Abstractions.Read;
-using IMS.Application.Common.Result;
+using IMS.Application.Common.Results;
 using MediatR;
 
 

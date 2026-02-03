@@ -1,9 +1,9 @@
 ﻿
-namespace IMS.Application.Common.Result
+namespace IMS.Application.Common.Results
 {
     // A generic result class to encapsulate success/failure states along with associated values or error messages.
     // T represents the type of the value returned on success.
-    public sealed class Result<T>
+    public sealed class Result<T> : IResult
     {
         public bool IsSuccess { get; }
         public string? Error { get; }

@@ -19,6 +19,15 @@ namespace IMS.Application
             // This behavior will intercept requests and handle caching logic
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
 
+            // CacheVersionInvalidationBehavior for invalidating cache versions on commands
+            // that implement ICacheVersionInvalidator
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheVersionInvalidationBehavior<,>));
+
+            // CacheInvalidationBehavior for invalidating cache on commands that implement ICacheInvalidator
+            // This behavior will intercept requests and handle cache invalidation logic
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheInvalidationBehavior<,>));
+
+
             return services;
         }
     }

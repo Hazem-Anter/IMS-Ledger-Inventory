@@ -1,6 +1,6 @@
 ﻿
 using IMS.Application.Abstractions.Persistence;
-using IMS.Application.Common.Result;
+using IMS.Application.Common.Results;
 using IMS.Domain.Entities;
 using MediatR;
 
