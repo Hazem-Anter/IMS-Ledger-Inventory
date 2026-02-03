@@ -1,6 +1,8 @@
 ﻿
+using IMS.Application.Abstractions.Caching;
 using IMS.Application.Abstractions.Persistence;
 using IMS.Application.Abstractions.Read;
+using IMS.Infrastructure.Caching;
 using IMS.Infrastructure.Persistence;
 using IMS.Infrastructure.Read;
 using IMS.Infrastructure.Repositories;
@@ -31,6 +33,9 @@ namespace IMS.Infrastructure
             // Register read services
             services.AddScoped<IStockReadService, StockReadService>();
 
+            // Register caching services
+            services.AddMemoryCache();
+            services.AddScoped<ICacheService, MemoryCacheService>();
 
             return services;
         }

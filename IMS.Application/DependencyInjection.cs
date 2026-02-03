@@ -1,4 +1,6 @@
 ﻿
+using IMS.Application.Common.Behaviors;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IMS.Application
@@ -11,6 +13,11 @@ namespace IMS.Application
             // current assembly is IMS.Application which contains the handlers and requests  
             services.AddMediatR(cfg 
                 => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+
+            // Register pipeline behaviors 
+            // CachingBehavior for caching requests that implement ICacheableQuery
+            // This behavior will intercept requests and handle caching logic
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
 
             return services;
         }
