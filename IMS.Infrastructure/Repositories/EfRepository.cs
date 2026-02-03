@@ -40,8 +40,10 @@ namespace IMS.Infrastructure.Repositories
         public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
             => await _db.Set<T>().AnyAsync(predicate, ct);
 
+        //  
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
             => await _db.Set<T>().FirstOrDefaultAsync(predicate, ct);
+
 
     }
 }

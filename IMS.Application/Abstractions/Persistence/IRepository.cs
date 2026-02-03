@@ -23,5 +23,7 @@ namespace IMS.Application.Abstractions.Persistence
 
         Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
 
+
+
     }
 }

@@ -3,6 +3,7 @@ using IMS.Application.Features.Inventory.Commands.AdjustStock;
 using IMS.Application.Features.Inventory.Commands.IssueStock;
 using IMS.Application.Features.Inventory.Commands.ReceiveStock;
 using IMS.Application.Features.Inventory.Commands.TransferStock;
+using IMS.Application.Features.Inventory.Queries.StockOverview;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -109,6 +110,28 @@ namespace IMS.Api.Controllers
                 return BadRequest(new { error = result.Error });
 
             return Ok(new { transactionId = result.Value });
+        }
+
+        [HttpGet("stock-overview")]
+        public async Task<IActionResult> GetStockOverview(
+            [FromQuery] int? warehouseId,
+            [FromQuery] int? productId,
+            [FromQuery] bool lowStockOnly,
+            CancellationToken ct)
+        {
+            // 1) Create and send the GetStockOverviewQuery to the mediator
+            var query = new GetStockOverviewQuery(
+                warehouseId,
+                productId,
+                lowStockOnly);
+
+            var result = await _mediator.Send(query, ct);
+
+            // 2) Handle the result and return appropriate HTTP response
+            if (!result.IsSuccess)
+                return BadRequest(new { error = result.Error });
+
+            return Ok(result.Value);
         }
     }
 }
