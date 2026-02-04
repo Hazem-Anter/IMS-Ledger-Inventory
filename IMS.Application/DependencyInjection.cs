@@ -14,6 +14,11 @@ namespace IMS.Application
             services.AddMediatR(cfg 
                 => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 
+            // Register LoggingBehavior for logging requests and responses
+            // This behavior will intercept requests and log relevant information
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+
+
             // Register pipeline behaviors 
             // CachingBehavior for caching requests that implement ICacheableQuery
             // This behavior will intercept requests and handle caching logic
