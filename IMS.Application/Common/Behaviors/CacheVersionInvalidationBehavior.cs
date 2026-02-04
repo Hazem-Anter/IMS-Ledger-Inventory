@@ -2,22 +2,29 @@
 using IMS.Application.Abstractions.Caching;
 using IMS.Application.Common.Results;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace IMS.Application.Common.Behaviors
 {
     // Pipeline behavior to handle cache version invalidation for requests
     // This behavior intercepts requests that implement IInvalidatesCachePrefix
     // and increments the version for specified cache prefixes
-    public sealed class CacheVersionInvalidationBehavior<IRequest, TResponse>
-        : IPipelineBehavior<IRequest, TResponse>
-        where IRequest : notnull
+    public sealed class CacheVersionInvalidationBehavior<TRequest, TResponse>
+        : IPipelineBehavior<TRequest, TResponse>
+        where TRequest : notnull
     {
 
         private readonly ICacheVersionService _versions;
 
-        public CacheVersionInvalidationBehavior(ICacheVersionService versions)
+        private readonly ILogger<CacheVersionInvalidationBehavior<TRequest, TResponse>> _logger;
+
+
+        public CacheVersionInvalidationBehavior(
+            ICacheVersionService versions,
+            ILogger<CacheVersionInvalidationBehavior<TRequest, TResponse>> logger)
         {
             _versions = versions;
+            _logger = logger;
         }
 
         // Invalidate cache versions after the request is handled
@@ -35,7 +42,7 @@ namespace IMS.Application.Common.Behaviors
         // Returns:
         // - The response from the request handler
         public async Task<TResponse> Handle(
-            IRequest request,
+            TRequest request,
             RequestHandlerDelegate<TResponse> next,
             CancellationToken cancellationToken)
         {
@@ -49,10 +56,14 @@ namespace IMS.Application.Common.Behaviors
                 return response;
 
             // 3) Check if the response indicates success
-            // If not, return the response as is
-            // without any cache version updates
+            // If not, skip cache invalidation and return the response
             if (response is not IResult result || !result.IsSuccess)
+            {
+                // Log that invalidation is skipped due to unsuccessful response
+                _logger.LogInformation("[INVALIDATE] Skipped (request={Request} not success)", typeof(TRequest).Name);
                 return response;
+            }
+                
 
             // 4) Invalidate the specified cache prefixes
             // This is done by incrementing their versions
@@ -61,6 +72,9 @@ namespace IMS.Application.Common.Behaviors
             {
                 // Increment the version for each cache prefix
                 _versions.Increment(prefix);
+
+                // Log the invalidation action
+                _logger.LogInformation("[INVALIDATE] Incremented cache version for prefix: {Prefix}", prefix);
             }
 
             // 5) Return the original response

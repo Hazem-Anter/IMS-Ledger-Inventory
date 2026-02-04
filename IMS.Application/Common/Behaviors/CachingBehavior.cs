@@ -1,6 +1,7 @@
 ﻿
 using IMS.Application.Abstractions.Caching;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace IMS.Application.Common.Behaviors
 {
@@ -19,10 +20,16 @@ namespace IMS.Application.Common.Behaviors
         private readonly ICacheService _cache;
         private readonly ICacheVersionService _versions;
 
-        public CachingBehavior(ICacheService cashe, ICacheVersionService versions) 
+        private readonly ILogger<CachingBehavior<TRequest, TResponse>> _logger;
+
+        public CachingBehavior(
+            ICacheService cashe,
+            ICacheVersionService versions,
+            ILogger<CachingBehavior<TRequest, TResponse>> logger) 
         {
             _cache = cashe;
             _versions = versions;
+            _logger = logger;
         }
 
         
@@ -39,6 +46,9 @@ namespace IMS.Application.Common.Behaviors
             // 2) Construct the final cache key
             string finalKey = cacheable.CacheKey;
 
+            //#2.1# Log the cache key being checked 
+            _logger.LogInformation("[CACHE] Checking key: {Key}", finalKey);
+
             // If the request supports versioning, include the version in the cache key
             if (request is IVersionedCacheableQuery vq)
             {
@@ -52,16 +62,24 @@ namespace IMS.Application.Common.Behaviors
                 finalKey = $"{vq.CachePrefix}:v={v}:{vq.CacheKeyWithoutVersion}";
             }
 
-            // 3) Attempt to retrieve the response from the cache
+            // 3) Check if the response is already cached 
             // If found, return the cached response
+            // Log cache hit if found in cache 
             if (_cache.TryGetValue(finalKey, out TResponse? cached) && cached is not null)
+            {
+                _logger.LogInformation("[CACHE HIT] {Key}", finalKey);
                 return cached;
+            }
+            // Log cache miss if not found in cache
+            _logger.LogInformation("[CACHE MISS] {Key}", finalKey);
 
             // 4) If not found in cache, proceed to the next handler
             var response = await next();
 
             // 5) Store the response in the cache for future requests
+            // Log cache store action
             _cache.Set(finalKey, response, cacheable.SlidingExpiration);
+            _logger.LogInformation("[CACHE STORE] {Key}", finalKey);
 
             // 6) Return the response
             return response;
