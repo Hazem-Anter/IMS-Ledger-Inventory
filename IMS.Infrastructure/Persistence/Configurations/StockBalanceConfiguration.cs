@@ -27,6 +27,8 @@ namespace IMS.Infrastructure.Persistence.Configurations
                 .HasForeignKey(x => x.WarehouseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Property(x => x.LocationId).IsRequired(false);
+
             builder.HasOne(x => x.Location)
                 .WithMany()
                 .HasForeignKey(x => x.LocationId)

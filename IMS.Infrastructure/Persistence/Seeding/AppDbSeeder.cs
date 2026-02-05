@@ -7,6 +7,8 @@ public static class AppDbSeeder
 {
     public static async Task SeedAsync(AppDbContext db)
     {
+        /*
+
         // Ensure DB is created/migrated
         await db.Database.MigrateAsync();
 
@@ -35,5 +37,7 @@ public static class AppDbSeeder
             db.Products.Add(new Product("Wireless Mouse", "SKU-MOU-001", "1234567890456", minStockLevel: 10));
             await db.SaveChangesAsync();
         }
+
+        */
     }
 }

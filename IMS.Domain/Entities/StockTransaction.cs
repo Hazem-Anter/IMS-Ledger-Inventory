@@ -8,7 +8,7 @@ namespace IMS.Domain.Entities
     {
         public int ProductId { get; private set; }
         public int WarehouseId { get; private set; }
-        public int LocationId { get; private set; }
+        public int? LocationId { get; private set; }
 
         public StockTransactionType Type { get; private set; }
 
@@ -44,7 +44,7 @@ namespace IMS.Domain.Entities
 
             ProductId = productId;
             WarehouseId = warehouseId;
-            LocationId = locationId ?? 0;
+            LocationId = locationId;
 
             Type = type;
             QuantityDelta = quantityDelta;
