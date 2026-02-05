@@ -1,5 +1,6 @@
 ﻿
 using IMS.Application.Abstractions.Read;
+using IMS.Application.Common.Paging;
 using IMS.Application.Features.Inventory.Queries.StockOverview;
 using IMS.Application.Features.Reports.Queries.StockMovements;
 using IMS.Infrastructure.Persistence;
@@ -66,8 +67,8 @@ namespace IMS.Infrastructure.Read
         public async Task<List<StockMovementDto>> GetStockMovementsAsync(
             DateTime fromUtc,
             DateTime toUtc,
-            int? productId = null,
             int? warehouseId = null,
+            int? productId = null,
             CancellationToken ct = default)
         {
             // 1) Validate the date range 
@@ -107,6 +108,74 @@ namespace IMS.Infrastructure.Read
                     t.ReferenceId
                 ))
                 .ToListAsync(ct);
+        }
+
+        // Retrieves a paged list of stock movements based on the provided criteria
+        // This method is similar to GetStockMovementsAsync,
+        // but includes pagination parameters (page and pageSize),
+        // and returns a PagedResult containing the items and total count.
+        public async Task<PagedResult<StockMovementDto>> GetStockMovementsPagedAsync(
+            DateTime fromUtc,
+            DateTime toUtc,
+            int? warehouseId,
+            int? productId,
+            int page,
+            int pageSize,
+            CancellationToken ct = default)
+        {
+
+            // 1) Validate the date range
+            if (toUtc <= fromUtc)
+                return new PagedResult<StockMovementDto>(Array.Empty<StockMovementDto>(), 0, page, pageSize);
+
+            // 2) Ensure page and pageSize are within reasonable limits to prevent abuse
+            if (page <= 0)
+                page = 1;
+            if(pageSize <= 0)
+                pageSize = 50;
+            if(pageSize > 200)
+                pageSize = 200;
+
+            // 3) Build the base query to get stock transactions within the specified date range
+            var baseQuery = _db.StockTransactions
+                .AsNoTracking()
+                .Where(t => t.CreatedAt >= fromUtc && t.CreatedAt <= toUtc);
+
+            // 4) Apply filters based on the provided parameters
+            if (warehouseId is not null)
+                baseQuery = baseQuery.Where(t => t.WarehouseId == warehouseId);
+
+            if(productId is not null)
+                baseQuery = baseQuery.Where(t => t.ProductId == productId);
+
+            // 5) Get the total count of items matching the criteria (before pagination)
+            var totalCount = await baseQuery.CountAsync(ct);
+
+            // 6) Apply pagination to the query and project the results into StockMovementDto
+            var items = await baseQuery
+                .OrderByDescending(t => t.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(t => new StockMovementDto(
+                    t.Id,
+                    t.ProductId,
+                    t.Product!.Name,
+                    t.Product.Sku,
+                    t.WarehouseId,
+                    t.Warehouse!.Code,
+                    t.LocationId == 0 ? null : t.LocationId,
+                    t.LocationId == 0 ? null : t.Location!.Code,
+                    t.Type.ToString(),
+                    t.QuantityDelta,
+                    t.UnitCost,
+                    t.CreatedAt,
+                    t.ReferenceType,
+                    t.ReferenceId
+                ))
+                .ToListAsync(ct);
+
+            // 7) Return the paged result containing the items and total count
+            return new PagedResult<StockMovementDto>(items, totalCount, page, pageSize);
         }
     }
 }

@@ -22,12 +22,14 @@ namespace IMS.Api.Controllers
             [FromQuery] DateTime toUtc,
             [FromQuery] int? warehouseId,
             [FromQuery] int? productId,
-            CancellationToken ct)
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            CancellationToken ct = default)
         {
-            // 1) Create the query object with the provided parameters
-            var query = new GetStockMovementsQuery(fromUtc, toUtc, warehouseId, productId);
+            // 1) Create a GetStockMovementsQuery object with the provided query parameters
+            var query = new GetStockMovementsQuery(fromUtc, toUtc, warehouseId, productId, page, pageSize);
 
-            // 2) Send the query to the mediator and await the result
+            // 2) Send the query to the MediatR pipeline and await the result
             var result = await _mediator.Send(query, ct);
 
             // 3) Check if the result indicates success or failure and return the appropriate HTTP response
