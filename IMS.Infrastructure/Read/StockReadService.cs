@@ -2,6 +2,8 @@
 using IMS.Application.Abstractions.Read;
 using IMS.Application.Common.Paging;
 using IMS.Application.Features.Inventory.Queries.StockOverview;
+using IMS.Application.Features.Reports.Queries.DeadStock;
+using IMS.Application.Features.Reports.Queries.LowStock;
 using IMS.Application.Features.Reports.Queries.StockMovements;
 using IMS.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -234,5 +236,93 @@ namespace IMS.Infrastructure.Read
             // 5) Return the paged result containing the items and total count
             return new PagedResult<StockMovementDto>(items, totalCount, page, pageSize);
         }
+
+
+        // Retrieves a list of low stock items based on the provided filters
+        public async Task<List<LowStockItemDto>> GetLowStockReportAsync(
+            int? warehouseId,
+            int? productId,
+            CancellationToken ct = default)
+        {
+            // 1) Build the query to get stock balances
+            // where quantity on hand is less than or equal to the product's minimum stock level
+            var query = _db.StockBalances
+                .AsNoTracking()
+                .Where(b => b.QuantityOnHand <= b.Product!.MinStockLevel);
+
+            // 2) Apply filters based on the provided parameters
+            if (warehouseId is not null)
+                query = query.Where(b => b.WarehouseId == warehouseId);
+
+            if (productId is not null)
+                query = query.Where(b => b.ProductId == productId);
+
+            // 3) Project the results into LowStockItemDto and return the list
+            return await query
+                .OrderBy(b => b.ProductId)
+                .ThenBy(b => b.WarehouseId)
+                .ThenBy(b => b.LocationId)
+                .Select(b => new LowStockItemDto(
+                    b.ProductId,
+                    b.Product!.Name,
+                    b.Product.Sku,
+                    b.WarehouseId,
+                    b.Warehouse!.Code,
+                    b.LocationId == 0 ? null : b.LocationId,
+                    b.LocationId == 0 ? null : b.Location!.Code,
+                    b.QuantityOnHand,
+                    b.Product.MinStockLevel,
+                    b.Product.MinStockLevel - b.QuantityOnHand
+                ))
+                .ToListAsync(ct);
+
+        }
+
+
+        // Retrieves a list of dead stock items based on the provided criteria
+        public async Task<List<DeadStockItemDto>> GetDeadStockReportAsync(
+            int days,
+            int? warehouseId,
+            CancellationToken ct = default)
+        {
+            // 1) Calculate the cutoff date by subtracting the specified number of days from the current date
+            var cutoffDate = DateTime.UtcNow.AddDays(-days);
+
+            // 2) Build the query to get stock balances with quantity on hand greater than zero
+            var balances = _db.StockBalances
+                .AsNoTracking()
+                .Where(b => b.QuantityOnHand > 0);
+
+            // 3) Apply warehouse filter if provided
+            if (warehouseId is not null)
+                balances = balances.Where(b => b.WarehouseId == warehouseId);
+
+            // 4) For each stock balance, find the date of the last stock movement (transaction) for that product and warehouse
+            // If there are no movements, the last movement date will be null.
+            var query =
+                from b in balances
+                let lastMovement = _db.StockTransactions
+                    .Where(t =>
+                        t.ProductId == b.ProductId &&
+                        t.WarehouseId == b.WarehouseId)
+                    .Max(t => (DateTime?)t.CreatedAt)
+                where lastMovement == null || lastMovement < cutoffDate
+                orderby lastMovement
+                select new DeadStockItemDto(
+                    b.ProductId,
+                    b.Product!.Name,
+                    b.Product.Sku,
+                    b.WarehouseId,
+                    b.Warehouse!.Code,
+                    b.QuantityOnHand,
+                    lastMovement,
+                    lastMovement == null
+                        ? days
+                        : (int)(DateTime.UtcNow - lastMovement.Value).TotalDays
+                );
+
+            return await query.ToListAsync(ct);
+        }
+
     }
 }

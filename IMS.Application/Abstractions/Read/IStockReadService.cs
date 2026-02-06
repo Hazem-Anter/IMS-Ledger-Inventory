@@ -1,6 +1,8 @@
 ﻿
 using IMS.Application.Common.Paging;
 using IMS.Application.Features.Inventory.Queries.StockOverview;
+using IMS.Application.Features.Reports.Queries.DeadStock;
+using IMS.Application.Features.Reports.Queries.LowStock;
 using IMS.Application.Features.Reports.Queries.StockMovements;
 
 namespace IMS.Application.Abstractions.Read
@@ -46,6 +48,18 @@ namespace IMS.Application.Abstractions.Read
             int? warehouseId,
             int page,
             int pageSize,
+            CancellationToken ct = default);
+
+        // Generates a report of low stock items, optionally filtered by warehouse and product.
+        Task<List<LowStockItemDto>> GetLowStockReportAsync(
+            int? warehouseId,
+            int? productId,
+            CancellationToken ct = default);
+
+        // Generates a report of dead stock items that have not moved for a specified number of days,
+        Task<List<DeadStockItemDto>> GetDeadStockReportAsync(
+            int days,
+            int? warehouseId,
             CancellationToken ct = default);
     }
 }
