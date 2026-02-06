@@ -37,5 +37,15 @@ namespace IMS.Application.Abstractions.Read
             int pageSize,
             CancellationToken ct = default
             );
+
+        // Retrieves a paged timeline of stock movements for a specific product within a date range,
+        Task<PagedResult<StockMovementDto>> GetProductTimelinePagedAsync(
+            int productId,
+            DateTime fromUtc,
+            DateTime toUtc,
+            int? warehouseId,
+            int page,
+            int pageSize,
+            CancellationToken ct = default);
     }
 }

@@ -177,5 +177,62 @@ namespace IMS.Infrastructure.Read
             // 7) Return the paged result containing the items and total count
             return new PagedResult<StockMovementDto>(items, totalCount, page, pageSize);
         }
+
+        public async Task<PagedResult<StockMovementDto>> GetProductTimelinePagedAsync(
+            int productId,
+            DateTime fromUtc,
+            DateTime toUtc,
+            int? warehouseId,
+            int page,
+            int pageSize,
+            CancellationToken ct = default)
+        {
+            
+            // 1) Ensure page and pageSize are within reasonable limits to prevent abuse
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 50;
+            if (pageSize > 200) pageSize = 200;
+
+            // 2) Build the base query to get stock transactions for the specified product and date range
+            var baseQuery = _db.StockTransactions
+                .AsNoTracking()
+                .Where(t =>
+                    t.ProductId == productId &&
+                    t.CreatedAt >= fromUtc &&
+                    t.CreatedAt <= toUtc);
+
+            // 3) Apply warehouse filter if provided
+            if (warehouseId is not null)
+                baseQuery = baseQuery.Where(t => t.WarehouseId == warehouseId);
+
+            // 4) Get the total count of items matching the criteria (before pagination)
+            var totalCount = await baseQuery.CountAsync(ct);
+
+            // 6) Apply pagination to the query and project the results into StockMovementDto
+            var items = await baseQuery
+                .OrderByDescending(t => t.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(t => new StockMovementDto(
+                    t.Id,
+                    t.ProductId,
+                    t.Product!.Name,
+                    t.Product.Sku,
+                    t.WarehouseId,
+                    t.Warehouse!.Code,
+                    t.LocationId == 0 ? null : t.LocationId,
+                    t.LocationId == 0 ? null : t.Location!.Code,
+                    t.Type.ToString(),
+                    t.QuantityDelta,
+                    t.UnitCost,
+                    t.CreatedAt,
+                    t.ReferenceType,
+                    t.ReferenceId
+                ))
+                .ToListAsync(ct);
+
+            // 5) Return the paged result containing the items and total count
+            return new PagedResult<StockMovementDto>(items, totalCount, page, pageSize);
+        }
     }
 }
