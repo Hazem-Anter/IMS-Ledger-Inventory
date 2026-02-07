@@ -5,9 +5,11 @@ using IMS.Application.Features.Inventory.Queries.StockOverview;
 using IMS.Application.Features.Reports.Queries.DeadStock;
 using IMS.Application.Features.Reports.Queries.LowStock;
 using IMS.Application.Features.Reports.Queries.StockMovements;
+using IMS.Application.Features.Reports.Queries.StockValuation;
 using IMS.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
+
+
 
 namespace IMS.Infrastructure.Read
 {
@@ -323,6 +325,171 @@ namespace IMS.Infrastructure.Read
 
             return await query.ToListAsync(ct);
         }
+
+        // ##################################################################################
+        // ################################# Valuation ######################################
+        // ##################################################################################
+
+        // Helper record to represent an IN layer with quantity and unit cost
+        // This is used to compute FIFO valuation by simulating the layers of stock received.
+        // Each IN transaction creates a layer of stock with a certain quantity and unit cost.
+        private sealed record InLayer(int Qty, decimal UnitCost);
+
+
+        // Computes the FIFO value of the on-hand quantity based on the layers of stock received.
+        // The method simulates the consumption of stock from the layers in FIFO order,
+        // and calculates the value of the remaining stock.
+        // The layers are processed from the most recent to the oldest, taking into account the quantity on hand.
+        private static decimal ComputeFifoValue(int onHandQty, List<InLayer> layers)
+        {
+            // 1) If there is no stock on hand or no layers, the value is zero.
+            if (onHandQty <= 0 || layers.Count == 0)
+                return 0m;
+
+            // 2) Calculate the total quantity received from the layers.
+
+            // FIFO: remaining stock comes from earliest layers,
+            // but easiest way to compute remaining value:
+            // Take the last "onHandQty" units from the layered flow after consumption.
+            // We'll simulate consumption from layers until remaining = onHandQty.
+
+            var totalIn = layers.Sum(l => l.Qty);
+            if (totalIn <= 0)
+                return 0m;
+
+            // 3) Determine how many units we need to keep based on the on-hand quantity.
+
+            // If we received less than or equal current on-hand, then all received is still on hand
+            // (This can happen if OUT tracking isn't included; but our stock balance should match.)
+            // We'll still calculate based on onHandQty.
+            var toKeep = Math.Min(onHandQty, totalIn);
+
+            // 4) Compute the value of the remaining stock by taking from the layers in reverse order (newest to oldest).
+
+            // We need to keep the last 'toKeep' units AFTER consumption.
+            // FIFO keeps oldest sold first -> remaining comes from newer layers.
+            // So compute value by taking from the end (reverse layers).
+            decimal value = 0m;
+            int remaining = toKeep;
+            
+            for (int i = layers.Count - 1; i >= 0 && remaining > 0; i--)
+            {
+                var take = Math.Min(remaining, layers[i].Qty);
+                value += take * layers[i].UnitCost;
+                remaining -= take;
+            }
+
+            return value;
+        }
+
+        // Retrieves a list of stock valuation items based on the specified valuation mode and filters.
+        public async Task<List<StockValuationItemDto>> GetStockValuationReportAsync(
+            StockValuationMode mode,
+            int? warehouseId,
+            int? productId,
+            CancellationToken ct = default)
+        {
+            // 1) Build the query to get stock balances with quantity on hand greater than zero
+            var balances = _db.StockBalances
+                .AsNoTracking()
+                .Where(b => b.QuantityOnHand > 0);
+
+            // 2) Apply filters based on the provided parameters
+            if (warehouseId is not null)
+                balances = balances.Where(b => b.WarehouseId == warehouseId);
+
+            if (productId is not null)
+                balances = balances.Where(b => b.ProductId == productId);
+
+            // 3) Get the relevant data for the stock balances, including product and warehouse information.
+            // We will need the product name, SKU, warehouse code, and quantity on hand for each balance to compute the valuation.
+            var balanceRows = await balances
+                .Select(b => new
+                {
+                    b.ProductId,
+                    ProductName = b.Product!.Name,
+                    Sku = b.Product.Sku,
+                    b.WarehouseId,
+                    WarehouseCode = b.Warehouse!.Code,
+                    b.LocationId,
+                    LocationCode = b.Location!.Code,
+                    b.QuantityOnHand
+                })
+                .ToListAsync(ct);
+
+            // results list to hold the computed stock valuation items  
+            var results = new List<StockValuationItemDto>();
+
+
+            // 4) For each stock balance, fetch the relevant IN transactions with unit cost to compute the valuation based on the specified mode (FIFO or Weighted Average).
+            foreach (var b in balanceRows)
+            {
+                // Fetch IN layers with UnitCost
+                var inTx = await _db.StockTransactions
+                    .AsNoTracking()
+                    .Where(t =>
+                        t.ProductId == b.ProductId &&
+                        t.WarehouseId == b.WarehouseId &&
+                        t.Type == Domain.Enum.StockTransactionType.In &&  // Only consider IN transactions with unit cost for valuation
+                        t.UnitCost != null)
+                    .OrderBy(t => t.CreatedAt)
+                    .Select(t => new InLayer(t.QuantityDelta, t.UnitCost!.Value)) // QuantityDelta should be + for IN
+                    .ToListAsync(ct);
+
+                // Note: We are only considering IN transactions with a unit cost for valuation purposes.
+                // OUT transactions do not have a unit cost and are not needed for computing the valuation of the remaining stock.
+
+                // Safety: ensure positive qty
+                var layers = inTx
+                    .Where(x => x.Qty > 0)
+                    .ToList();
+
+                
+                decimal totalValue = 0m;
+                decimal? unitCost = null;
+
+                // 5) Compute the total value and unit cost based on the specified valuation mode.
+                // For FIFO, we compute the value of the remaining stock by simulating the consumption of stock from the layers in FIFO order.
+                // For Weighted Average, we calculate the average unit cost across all layers and then multiply by the quantity on hand to get the total value.
+                if (mode == StockValuationMode.Fifo)
+                {
+                    totalValue = ComputeFifoValue(b.QuantityOnHand, layers);
+                    unitCost = b.QuantityOnHand == 0 ? null : (totalValue / b.QuantityOnHand);
+                }
+                else // WeightedAverage
+                {
+                    var totalQty = layers.Sum(x => x.Qty);
+                    var totalCost = layers.Sum(x => x.Qty * x.UnitCost);
+                    unitCost = totalQty == 0 ? null : totalCost / totalQty;
+                    totalValue = unitCost == null ? 0m : b.QuantityOnHand * unitCost.Value;
+                }
+
+                // 6) Create a StockValuationItemDto for each stock balance with the computed unit cost and total value, and add it to the results list.
+                results.Add(new StockValuationItemDto(
+                    b.ProductId,
+                    b.ProductName,
+                    b.Sku,
+                    b.WarehouseId,
+                    b.WarehouseCode,
+                    b.LocationId,
+                    b.LocationCode,
+                    b.QuantityOnHand,
+                    unitCost,
+                    totalValue
+                ));
+            }
+
+
+            // 7) Return the list of StockValuationItemDto, ordered by total value in descending order.
+            return results
+                .OrderByDescending(r => r.TotalValue)
+                .ToList();
+        }
+
+
+        // ##################################################################################
+        // ################################# Valuation ######################################
+        // ##################################################################################
 
     }
 }

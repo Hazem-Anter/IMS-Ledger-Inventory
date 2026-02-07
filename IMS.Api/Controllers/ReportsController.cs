@@ -1,6 +1,7 @@
 ﻿using IMS.Application.Features.Reports.Queries.DeadStock;
 using IMS.Application.Features.Reports.Queries.LowStock;
 using IMS.Application.Features.Reports.Queries.StockMovements;
+using IMS.Application.Features.Reports.Queries.StockValuation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -80,5 +81,27 @@ namespace IMS.Api.Controllers
 
             return Ok(result.Value);
         }
+
+        // Endpoint to get stock valuation report
+        [HttpGet("stock-valuation")]
+        public async Task<IActionResult> StockValuation(
+            [FromQuery] StockValuationMode mode = StockValuationMode.Fifo,
+            [FromQuery] int? warehouseId = null,
+            [FromQuery] int? productId = null,
+            CancellationToken ct = default)
+        {
+            // 1) Create a GetStockValuationReportQuery object with the provided query parameters
+            var query = new GetStockValuationReportQuery(mode, warehouseId, productId);
+
+            // 2) Send the query to the MediatR pipeline and await the result
+            var result = await _mediator.Send(query, ct);
+
+            // 3) Check if the result indicates success or failure and return the appropriate HTTP response
+            if (!result.IsSuccess)
+                return BadRequest(new { error = result.Error });
+
+            return Ok(result.Value);
+        }
+
     }
 }

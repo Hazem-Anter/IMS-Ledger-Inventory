@@ -4,6 +4,7 @@ using IMS.Application.Features.Inventory.Queries.StockOverview;
 using IMS.Application.Features.Reports.Queries.DeadStock;
 using IMS.Application.Features.Reports.Queries.LowStock;
 using IMS.Application.Features.Reports.Queries.StockMovements;
+using IMS.Application.Features.Reports.Queries.StockValuation;
 
 namespace IMS.Application.Abstractions.Read
 {
@@ -60,6 +61,14 @@ namespace IMS.Application.Abstractions.Read
         Task<List<DeadStockItemDto>> GetDeadStockReportAsync(
             int days,
             int? warehouseId,
+            CancellationToken ct = default);
+
+        // Generates a stock valuation report based on the specified valuation mode (e.g., Weighted Average, FIFO),
+        // optionally filtered by warehouse and product.
+        Task<List<StockValuationItemDto>> GetStockValuationReportAsync(
+            StockValuationMode mode,
+            int? warehouseId,
+            int? productId,
             CancellationToken ct = default);
     }
 }
