@@ -5,10 +5,12 @@ using IMS.Application.Features.Inventory.Commands.ReceiveStock;
 using IMS.Application.Features.Inventory.Commands.TransferStock;
 using IMS.Application.Features.Inventory.Queries.StockOverview;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IMS.Api.Controllers
 {
+    [Authorize(Roles = "Admin,Manager,Clerk")]
     [Route("api/[controller]")]
     [ApiController]
     public class InventoryController : ControllerBase

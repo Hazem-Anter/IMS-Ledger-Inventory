@@ -1,10 +1,12 @@
 ﻿using IMS.Application.Features.Products.Queries.ProductTimeline;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IMS.Api.Controllers
 {
+    [Authorize(Roles = "Admin,Manager")]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase

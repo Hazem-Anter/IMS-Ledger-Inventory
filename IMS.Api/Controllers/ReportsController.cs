@@ -3,11 +3,13 @@ using IMS.Application.Features.Reports.Queries.LowStock;
 using IMS.Application.Features.Reports.Queries.StockMovements;
 using IMS.Application.Features.Reports.Queries.StockValuation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IMS.Api.Controllers
 {
+    [Authorize(Roles = "Admin,Manager,Auditor")]
     [Route("api/[controller]")]
     [ApiController]
     public class ReportsController : ControllerBase

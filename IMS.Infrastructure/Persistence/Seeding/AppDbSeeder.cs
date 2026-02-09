@@ -37,7 +37,7 @@ public static class AppDbSeeder
             db.Products.Add(new Product("Wireless Mouse", "SKU-MOU-001", "1234567890456", minStockLevel: 10));
             await db.SaveChangesAsync();
         }
-
         */
+        
     }
 }
