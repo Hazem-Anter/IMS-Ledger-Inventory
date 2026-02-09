@@ -1,7 +1,10 @@
 ﻿
+using IMS.Domain.Common;
 using IMS.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.VisualBasic;
+using System.Reflection.Emit;
 
 namespace IMS.Infrastructure.Persistence.Configurations
 {
@@ -27,8 +30,7 @@ namespace IMS.Infrastructure.Persistence.Configurations
             builder.HasIndex(x => new { x.WarehouseId, x.Code })
                 .IsUnique();
 
-            builder.Property(x => x.CreatedBy).HasMaxLength(100);
-            builder.Property(x => x.UpdatedBy).HasMaxLength(100);
+
         }
     }
 }

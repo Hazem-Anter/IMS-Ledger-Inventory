@@ -24,9 +24,6 @@ namespace IMS.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(x => x.Code)
                 .IsUnique();
-
-            builder.Property(x => x.CreatedBy).HasMaxLength(100);
-            builder.Property(x => x.UpdatedBy).HasMaxLength(100);
         }
     }
 }

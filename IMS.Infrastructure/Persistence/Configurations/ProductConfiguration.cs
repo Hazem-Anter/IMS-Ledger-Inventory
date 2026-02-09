@@ -38,9 +38,6 @@ namespace IMS.Infrastructure.Persistence.Configurations
             builder.Property(x => x.IsActive)
                 .HasDefaultValue(true);
 
-            // Auditing fields (optional to configure; EF can infer, but we keep max lengths)
-            builder.Property(x => x.CreatedBy).HasMaxLength(100);
-            builder.Property(x => x.UpdatedBy).HasMaxLength(100);
 
         }
     }

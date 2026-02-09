@@ -50,8 +50,6 @@ namespace IMS.Infrastructure.Persistence.Configurations
             // Reporting index (movement history)
             builder.HasIndex(x => new { x.ProductId, x.WarehouseId, x.CreatedAt });
 
-            builder.Property(x => x.CreatedBy).HasMaxLength(100);
-            builder.Property(x => x.UpdatedBy).HasMaxLength(100);
         }
     }
 }

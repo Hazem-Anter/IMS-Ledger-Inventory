@@ -43,8 +43,6 @@ namespace IMS.Infrastructure.Persistence.Configurations
                 .IsRowVersion()
                 .IsConcurrencyToken();
 
-            builder.Property(x => x.CreatedBy).HasMaxLength(100);
-            builder.Property(x => x.UpdatedBy).HasMaxLength(100);
         }
     }
 }

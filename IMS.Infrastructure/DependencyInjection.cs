@@ -7,6 +7,7 @@ using IMS.Infrastructure.Caching;
 using IMS.Infrastructure.Identity;
 using IMS.Infrastructure.Identity.Token;
 using IMS.Infrastructure.Persistence;
+using IMS.Infrastructure.Persistence.Interceptors;
 using IMS.Infrastructure.Read;
 using IMS.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
@@ -23,11 +24,16 @@ namespace IMS.Infrastructure
             // Here you can register infrastructure services, e.g., DbContext, repositories, etc.
 
 
-            // Register AppDbContext with SQL Server provider using connection string from configuration
+            // Register AppDbContext with SQL Server provider
+            // and add the AuditSaveChangesInterceptor to track changes for auditing purposes.
             var connectionString = configuration.GetConnectionString("ImsConnection");
 
-            services.AddDbContext<AppDbContext>(options =>
-                 options.UseSqlServer(configuration.GetConnectionString("ImsConnection")));
+            services.AddDbContext<AppDbContext>((sp, options) =>
+            {
+                options.UseSqlServer(configuration.GetConnectionString("ImsConnection"));
+                options.AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>());
+            });
+
 
 
             // Register generic repository and unit of work
@@ -75,6 +81,11 @@ namespace IMS.Infrastructure
 
             // Register authentication service that will handle user registration, login, and other auth-related operations
             services.AddScoped<IAuthService, AuthService>();
+
+            // Register current user service to access information about the currently authenticated user in the application
+            services.AddHttpContextAccessor();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<AuditSaveChangesInterceptor>();
 
 
             return services;
