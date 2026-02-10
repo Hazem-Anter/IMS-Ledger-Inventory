@@ -1,4 +1,5 @@
-﻿using IMS.Api.Contracts.Inventory;
+﻿using IMS.Api.Common;
+using IMS.Api.Contracts.Inventory;
 using IMS.Application.Features.Inventory.Commands.AdjustStock;
 using IMS.Application.Features.Inventory.Commands.IssueStock;
 using IMS.Application.Features.Inventory.Commands.ReceiveStock;
@@ -39,10 +40,9 @@ namespace IMS.Api.Controllers
             var result = await _mediator.Send(cmd, ct);
 
             // 3) Handle the result and return appropriate HTTP response
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.Error });
+            var id = result.OkOrThrow();
 
-            return Ok(new { transactionId = result.Value });
+            return Ok(new { transactionId = id });
         }
 
         [HttpPost("issue")]
@@ -61,8 +61,7 @@ namespace IMS.Api.Controllers
             var result = await _mediator.Send(cmd, ct);
 
             // 3) Handle the result and return appropriate HTTP response
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.Error });
+            var id = result.OkOrThrow();
 
             return Ok(new { transactionId = result.Value });
         }
@@ -85,8 +84,7 @@ namespace IMS.Api.Controllers
             var result = await _mediator.Send(cmd, ct);
 
             // 3) Handle the result and return appropriate HTTP response
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.Error });
+            var id = result.OkOrThrow();
 
             return Ok(new { transactionId = result.Value });
         }
@@ -108,8 +106,7 @@ namespace IMS.Api.Controllers
             var result = await _mediator.Send(cmd, ct);
 
             // 3) Handle the result and return appropriate HTTP response
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.Error });
+            var id = result.OkOrThrow();
 
             return Ok(new { transactionId = result.Value });
         }
@@ -130,8 +127,7 @@ namespace IMS.Api.Controllers
             var result = await _mediator.Send(query, ct);
 
             // 2) Handle the result and return appropriate HTTP response
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.Error });
+            var id = result.OkOrThrow();
 
             return Ok(result.Value);
         }

@@ -1,4 +1,5 @@
 
+using IMS.Api.Middleware;
 using IMS.Application;
 using IMS.Application.Abstractions.Auth;
 using IMS.Infrastructure;
@@ -85,6 +86,9 @@ namespace IMS.Api
             // ##########################################################################################
 
 
+            // Register the global exception handling middleware as a transient service in the dependency injection container.
+            builder.Services.AddTransient<GlobalExceptionMiddleware>();
+
             var app = builder.Build();
 
             /*
@@ -116,6 +120,8 @@ namespace IMS.Api
                 app.UseSwaggerUI();
             }
 
+            // Add the global exception handling middleware to the request pipeline.
+            app.UseMiddleware<GlobalExceptionMiddleware>();
 
             app.UseHttpsRedirection();
 
