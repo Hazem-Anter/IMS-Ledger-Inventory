@@ -1,4 +1,5 @@
-﻿using IMS.Application.Features.Products.Queries.ProductTimeline;
+﻿using IMS.Api.Common;
+using IMS.Application.Features.Products.Queries.ProductTimeline;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -41,10 +42,9 @@ namespace IMS.Api.Controllers
 
             var result = await _mediator.Send(query, ct);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.Error });
+            var data = result.OkOrThrow();
 
-            return Ok(result.Value);
+            return Ok(data);
         }
     }
 }

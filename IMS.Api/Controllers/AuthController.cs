@@ -1,4 +1,5 @@
-﻿using IMS.Application.Features.Auth.Login;
+﻿using IMS.Api.Common;
+using IMS.Application.Features.Auth.Login;
 using IMS.Application.Features.Auth.Users.CreateUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -28,21 +29,24 @@ namespace IMS.Api.Controllers
             var result = await _mediator.Send(new LoginCommand(req.Email, req.Password), ct);
 
             // 2) Return the appropriate response based on the result
-            return result.IsSuccess
-                ? Ok(result.Value)
-                : Unauthorized(new { error = result.Error });
+            var data = result.OkOrThrow();
+
+            return Ok(data);
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPost("users")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest req, CancellationToken ct)
         {
+            // 1) Validate the request (e.g., check if email, password, and roles are provided)
             var result = await _mediator.Send(
                             new CreateUserCommand(req.Email, req.Password, req.Roles)
                             , ct);
 
-            // For now: simple mapping (Step 8 will replace this with ProblemDetails)
-            return result.IsSuccess ? Ok(result.Value) : BadRequest(new { error = result.Error });
+            // 2) Return the appropriate response based on the result
+            var data = result.OkOrThrow();
+
+            return Ok(data);
         }
 
         // Endpoint to get the current user's information

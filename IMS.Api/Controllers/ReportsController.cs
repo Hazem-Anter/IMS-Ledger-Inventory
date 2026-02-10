@@ -1,4 +1,5 @@
-﻿using IMS.Application.Features.Reports.Queries.DeadStock;
+﻿using IMS.Api.Common;
+using IMS.Application.Features.Reports.Queries.DeadStock;
 using IMS.Application.Features.Reports.Queries.LowStock;
 using IMS.Application.Features.Reports.Queries.StockMovements;
 using IMS.Application.Features.Reports.Queries.StockValuation;
@@ -38,10 +39,9 @@ namespace IMS.Api.Controllers
             var result = await _mediator.Send(query, ct);
 
             // 3) Check if the result indicates success or failure and return the appropriate HTTP response
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.Error });
+            var data = result.OkOrThrow();
 
-            return Ok(result.Value);
+            return Ok(data);
         }
 
         // Endpoint to get low stock report
@@ -58,10 +58,9 @@ namespace IMS.Api.Controllers
             var result = await _mediator.Send(query, ct);
 
             // 3) Check if the result indicates success or failure and return the appropriate HTTP response
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.Error });
+            var data = result.OkOrThrow();
 
-            return Ok(result.Value);
+            return Ok(data);
         }
 
         // Endpoint to get dead stock report
@@ -78,10 +77,9 @@ namespace IMS.Api.Controllers
             var result = await _mediator.Send(query, ct);
 
             // 3) Check if the result indicates success or failure and return the appropriate HTTP response
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.Error });
+            var data = result.OkOrThrow();
 
-            return Ok(result.Value);
+            return Ok(data);
         }
 
         // Endpoint to get stock valuation report
@@ -99,10 +97,9 @@ namespace IMS.Api.Controllers
             var result = await _mediator.Send(query, ct);
 
             // 3) Check if the result indicates success or failure and return the appropriate HTTP response
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.Error });
+            var data = result.OkOrThrow();
 
-            return Ok(result.Value);
+            return Ok(data);
         }
 
     }

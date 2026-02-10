@@ -63,7 +63,7 @@ namespace IMS.Api.Controllers
             // 3) Handle the result and return appropriate HTTP response
             var id = result.OkOrThrow();
 
-            return Ok(new { transactionId = result.Value });
+            return Ok(new { transactionId = id });
         }
 
         [HttpPost("transfer")]
@@ -86,7 +86,7 @@ namespace IMS.Api.Controllers
             // 3) Handle the result and return appropriate HTTP response
             var id = result.OkOrThrow();
 
-            return Ok(new { transactionId = result.Value });
+            return Ok(new { transactionId = id });
         }
 
         [HttpPost("adjust")]
@@ -108,7 +108,7 @@ namespace IMS.Api.Controllers
             // 3) Handle the result and return appropriate HTTP response
             var id = result.OkOrThrow();
 
-            return Ok(new { transactionId = result.Value });
+            return Ok(new { transactionId = id });
         }
 
         [HttpGet("stock-overview")]
@@ -127,9 +127,9 @@ namespace IMS.Api.Controllers
             var result = await _mediator.Send(query, ct);
 
             // 2) Handle the result and return appropriate HTTP response
-            var id = result.OkOrThrow();
+            var data = result.OkOrThrow();
 
-            return Ok(result.Value);
+            return Ok(data);
         }
     }
 }

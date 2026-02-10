@@ -1,5 +1,7 @@
 ﻿
+using FluentValidation;
 using IMS.Application.Common.Behaviors;
+using IMS.Application.Features.Inventory.Commands.ReceiveStock;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +20,13 @@ namespace IMS.Application
             // This behavior will intercept requests and log relevant information
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
+
+            // Register FluentValidation validators from the assembly containing ReceiveStockCommand,
+            // Which is the IMS.Application assembly. This will automatically register all validators defined in that assembly.
+            services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+            // Register ValidationBehavior for validating requests using FluentValidation
+            // This behavior will intercept requests and validate them before they reach the handlers
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             // Register pipeline behaviors 
             // CachingBehavior for caching requests that implement ICacheableQuery

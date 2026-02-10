@@ -10,8 +10,8 @@ namespace IMS.Application.Common.Exceptions
         // where the key is the name of the field that failed validation and the value is an array of error messages associated with that field.
         // This structure allows for multiple validation errors to be associated with a single field,
         // providing detailed feedback to the client about what went wrong with their request.
-        public IReadOnlyDictionary<string, string[]> Errors { get; }
-        public ValidationException(IReadOnlyDictionary<string, string[]> errors)
+        public IReadOnlyDictionary<string, string[]>? Errors { get; }
+        public ValidationException(IReadOnlyDictionary<string, string[]>? errors)
             : base("One or more validation errors occurred.")
         {
             Errors = errors;
