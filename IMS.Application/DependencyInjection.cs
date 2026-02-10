@@ -28,6 +28,11 @@ namespace IMS.Application
             // This behavior will intercept requests and validate them before they reach the handlers
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
+
+            //   
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
+
+
             // Register pipeline behaviors 
             // CachingBehavior for caching requests that implement ICacheableQuery
             // This behavior will intercept requests and handle caching logic
