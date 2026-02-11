@@ -87,6 +87,9 @@ namespace IMS.Infrastructure
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<AuditSaveChangesInterceptor>();
 
+            // Register other read services as needed
+            services.AddScoped<IProductReadService, ProductReadService>();
+
 
             return services;
         }

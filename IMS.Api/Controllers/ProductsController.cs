@@ -1,6 +1,12 @@
 ﻿using IMS.Api.Common;
 using IMS.Api.Contracts.Products;
+using IMS.Application.Features.Products.Commands.ActivateProduct;
 using IMS.Application.Features.Products.Commands.CreateProduct;
+using IMS.Application.Features.Products.Commands.DeactivateProduct;
+using IMS.Application.Features.Products.Commands.UpdateProduct;
+using IMS.Application.Features.Products.Queries.GetProductByBarcode;
+using IMS.Application.Features.Products.Queries.GetProductById;
+using IMS.Application.Features.Products.Queries.ListProducts;
 using IMS.Application.Features.Products.Queries.ProductTimeline;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -64,5 +70,87 @@ namespace IMS.Api.Controllers
             // along with any relevant metadata or links for further actions (e.g., retrieving the product details).
             return Ok(new CreateProductResponse(id));
         }
+
+        // Retrieve product details by barcode,
+        // allowing authorized users to look up products using their barcode information.
+        [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
+        [HttpGet("by-barcode/{barcode}")]
+        public async Task<IActionResult> GetByBarcode(string barcode, CancellationToken ct)
+        {
+            var dto = (await _mediator.Send(
+                new GetProductByBarcodeQuery(barcode), ct))
+                .OkOrThrow();
+
+            return Ok(dto);
+        }
+
+        // Retrieve product details by product ID,
+        // allowing authorized users to look up products using their unique identifier.
+        [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id, CancellationToken ct)
+        {
+            var dto = (await _mediator.Send(
+                new GetProductByIdQuery(id), ct))
+                .OkOrThrow();
+
+            return Ok(dto);
+        }
+
+        // List products with optional filtering by name or SKU or BarcodeS, and support for pagination,
+
+        // GET /api/products?search=milk&isActive=true&page=1&pageSize=20
+        [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
+        [HttpGet]
+        public async Task<IActionResult> List(
+            [FromQuery] string? search,
+            [FromQuery] bool? isActive,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            CancellationToken ct = default)
+        {
+            var query = new ListProductsQuery(search, isActive, page, pageSize);
+
+            var result = await _mediator.Send(query, ct);
+
+            var data = result.OkOrThrow();
+
+            return Ok(data);
+        }
+
+        // Update product details such as name, SKU, barcode, and minimum stock level,
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateProductRequest req, CancellationToken ct)
+        {
+            var updatedId = (await _mediator.Send(
+                new UpdateProductCommand(id, req.Name, req.Sku, req.Barcode, req.MinStockLevel), ct))
+                .OkOrThrow();
+
+            return Ok(new { productId = updatedId });
+        }
+
+        // Activate a product, making it available for stock movements and transactions.
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPatch("{id:int}/activate")]
+        public async Task<IActionResult> Activate(int id, CancellationToken ct)
+        {
+            var pid = (await _mediator.Send(new ActivateProductCommand(id), ct))
+                .OkOrThrow();
+
+            return Ok(new { productId = pid });
+        }
+
+        // Deactivate a product, preventing it from being used in stock movements and transactions.
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPatch("{id:int}/deactivate")]
+        public async Task<IActionResult> Deactivate(int id, CancellationToken ct)
+        {
+            var pid = (await _mediator.Send(new DeactivateProductCommand(id), ct))
+                .OkOrThrow();
+
+            return Ok(new { productId = pid });
+        }
+
     }
 }
