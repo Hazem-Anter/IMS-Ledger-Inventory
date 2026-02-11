@@ -23,6 +23,11 @@ namespace IMS.Application.Abstractions.Persistence
 
         Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
 
+        // Added Query method to return an IQueryable<T> for more complex querying scenarios
+        // This allows consumers of the repository to build their own queries using LINQ
+        // Useful for scenarios where the repository needs to support filtering, sorting, and pagination without exposing the underlying data access implementation
+        // example: repository.Query().Where(u => u.IsActive).OrderBy(u => u.LastName).ToListAsync();
+        IQueryable<T> Query();
 
 
     }

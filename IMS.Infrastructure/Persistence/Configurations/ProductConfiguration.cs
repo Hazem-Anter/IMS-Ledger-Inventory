@@ -19,13 +19,13 @@ namespace IMS.Infrastructure.Persistence.Configurations
 
             builder.Property(x => x.Sku)
                 .IsRequired()
-                .HasMaxLength(50);
+                .HasMaxLength(64);
 
             builder.HasIndex(x => x.Sku)
                 .IsUnique();
 
             builder.Property(x => x.Barcode)
-                .HasMaxLength(50);
+                .HasMaxLength(64);
 
             // Unique barcode (if provided)
             builder.HasIndex(x => x.Barcode)

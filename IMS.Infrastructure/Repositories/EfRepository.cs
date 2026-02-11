@@ -40,10 +40,12 @@ namespace IMS.Infrastructure.Repositories
         public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
             => await _db.Set<T>().AnyAsync(predicate, ct);
 
-        //  
+        // Retrieves the first entity that matches the given predicate asynchronously, cancelling if requested. If no entity matches, returns null.  
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
             => await _db.Set<T>().FirstOrDefaultAsync(predicate, ct);
 
-
+        // Returns an IQueryable<T> for the entity type, allowing for further querying and filtering.
+        public IQueryable<T> Query()
+            => _db.Set<T>().AsNoTracking().AsQueryable();
     }
 }

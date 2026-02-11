@@ -1,4 +1,6 @@
 ﻿using IMS.Api.Common;
+using IMS.Api.Contracts.Products;
+using IMS.Application.Features.Products.Commands.CreateProduct;
 using IMS.Application.Features.Products.Queries.ProductTimeline;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -45,6 +47,22 @@ namespace IMS.Api.Controllers
             var data = result.OkOrThrow();
 
             return Ok(data);
+        }
+
+        // Create a new product with the specified details,
+        // including name, SKU, optional barcode, and minimum stock level.
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateProductRequest req, CancellationToken ct)
+        {
+            // 1) Validate the incoming request data (e.g., check for required fields, validate formats).
+            var id = (await _mediator.Send(
+                new CreateProductCommand(req.Name, req.Sku, req.Barcode, req.MinStockLevel), ct))
+                .OkOrThrow();
+
+            // 2) return a response containing the ID of the newly created product,
+            // along with any relevant metadata or links for further actions (e.g., retrieving the product details).
+            return Ok(new CreateProductResponse(id));
         }
     }
 }

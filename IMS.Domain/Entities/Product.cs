@@ -20,8 +20,8 @@ namespace IMS.Domain.Entities
         {
             SetName(name);
             SetSku(sku);
-            Barcode = barcode;
-            MinStockLevel = minStockLevel;
+            SetBarcode(barcode);
+            SetMinStockLevel(minStockLevel);
         }
 
         public void SetName(string name)
@@ -37,6 +37,20 @@ namespace IMS.Domain.Entities
                 throw new ArgumentException("Sku is required.", nameof(sku));
 
             Sku = sku.Trim().ToUpperInvariant();
+        }
+
+        public void SetBarcode(string? barcode)
+        {
+            barcode = string.IsNullOrWhiteSpace(barcode) ? null : barcode.Trim();
+            Barcode = barcode;
+        }
+
+        public void SetMinStockLevel(int minStockLevel)
+        {
+            if (minStockLevel < 0)
+                throw new ArgumentOutOfRangeException(nameof(minStockLevel), "MinStockLevel cannot be negative.");
+
+            MinStockLevel = minStockLevel;
         }
 
         public void Deactivate() => IsActive = false;
