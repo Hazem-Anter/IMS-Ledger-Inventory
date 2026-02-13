@@ -8,6 +8,8 @@ namespace IMS.Domain.Entities
         public int WarehouseId { get; private set; }
         public string Code { get; private set; } = default!;
 
+        public bool IsActive { get; private set; } = true;
+
         // Navigation property
         public Warehouse? Warehouse { get; private set; }
 
@@ -28,5 +30,8 @@ namespace IMS.Domain.Entities
 
             Code = code.Trim().ToUpperInvariant();
         }
+
+        public void Deactivate() => IsActive = false;
+        public void Activate() => IsActive = true;
     }
 }

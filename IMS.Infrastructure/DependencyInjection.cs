@@ -90,6 +90,11 @@ namespace IMS.Infrastructure
             // Register other read services as needed
             services.AddScoped<IProductReadService, ProductReadService>();
 
+            // Register warehouse read service for retrieving warehouse-related data.
+            services.AddScoped<IWarehouseReadService, WarehouseReadService>();
+
+            // Register location read service for retrieving location-related data.
+            services.AddScoped<ILocationReadService, LocationReadService>();
 
             return services;
         }

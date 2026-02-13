@@ -1,6 +1,5 @@
 ﻿
 using FluentValidation;
-using IMS.Application.Common.Exceptions;
 using MediatR;
 
 namespace IMS.Application.Common.Behaviors
@@ -73,7 +72,7 @@ namespace IMS.Application.Common.Behaviors
 
             // 7) Finally, it throws a ValidationException with the aggregated errors,
             // which can be caught and handled by the application's exception handling middleware or logic.
-            throw new IMS.Application.Common.Exceptions.ValidationException(errors);
+            throw new Exceptions.ValidationException(errors);
 
             // Note that the ValidationException is a custom exception defined in the IMS.Application.Common.Exceptions namespace,
             // and it is designed to encapsulate the validation errors in a structured way,

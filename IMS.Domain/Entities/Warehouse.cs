@@ -7,6 +7,7 @@ namespace IMS.Domain.Entities
     {
         public string Name { get; private set; } = default!;
         public string Code { get; private set; } = default!;
+        public bool IsActive { get; private set; } = true;
 
         private Warehouse() { }
         public Warehouse(string name, string code)
@@ -30,5 +31,8 @@ namespace IMS.Domain.Entities
 
             Code = code.Trim().ToUpperInvariant();
         }
+
+        public void Deactivate() => IsActive = false;
+        public void Activate() => IsActive = true;
     }
 }

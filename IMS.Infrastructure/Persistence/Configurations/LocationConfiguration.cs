@@ -19,7 +19,7 @@ namespace IMS.Infrastructure.Persistence.Configurations
 
             builder.Property(x => x.Code)
                 .IsRequired()
-                .HasMaxLength(80);
+                .HasMaxLength(50);
 
             builder.HasOne(x => x.Warehouse)
                 .WithMany()
