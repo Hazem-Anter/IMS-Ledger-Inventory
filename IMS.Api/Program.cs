@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 namespace IMS.Api
@@ -39,7 +40,49 @@ namespace IMS.Api
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+
+            // Configure Swagger to include JWT authentication support.
+            // This allows us to test authenticated endpoints directly from the Swagger UI by providing a JWT token.
+            builder.Services.AddSwaggerGen(c =>
+            {
+                // 1) Define the Swagger document with a title and version.
+                // This is the basic information about our API that will be displayed in the Swagger UI.
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "IMS API",
+                    Version = "v1"
+                });
+
+                // 2) Add a security definition for Bearer authentication.
+                // This tells Swagger that our API uses JWT Bearer tokens for authentication and how to provide them in the UI.
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter your JWT token like: Bearer {token}"
+                });
+
+                // 3) Add a security requirement that applies the Bearer authentication scheme to all endpoints.
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+            });
+
 
             // Add Infrastructure Services 
             builder.Services.AddInfrastructureServices(builder.Configuration);
@@ -50,6 +93,19 @@ namespace IMS.Api
             // This allows us to inject TimeProvider into other services or controllers that require time-related functionality.
             // solve the problem of time management in the application.
             builder.Services.AddSingleton(TimeProvider.System);
+
+            // Configure Health Checks for SQL Server databases
+            // This section adds health checks to the application to monitor the health of the SQL Server databases used by the application.
+            builder.Services.AddHealthChecks()
+                .AddSqlServer(
+                    connectionString: builder.Configuration.GetConnectionString("ImsConnection")!,
+                    name: "ims-db",
+                    tags: new[] { "ready" })
+                .AddSqlServer(
+                    connectionString: builder.Configuration.GetConnectionString("AuthConnection")!,
+                    name: "auth-db",
+                    tags: new[] { "ready" });
+
 
 
             // ##########################################################################################
@@ -123,6 +179,18 @@ namespace IMS.Api
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+
+            // Configure health check endpoints for liveness and readiness probes.
+            app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+                Predicate = _ => false // liveness: app is running
+            });
+
+            app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+                Predicate = r => r.Tags.Contains("ready") // readiness: DB checks
+            });
 
 
             app.MapControllers();
