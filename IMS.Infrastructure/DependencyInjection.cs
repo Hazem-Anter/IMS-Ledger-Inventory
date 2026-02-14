@@ -96,6 +96,11 @@ namespace IMS.Infrastructure
             // Register location read service for retrieving location-related data.
             services.AddScoped<ILocationReadService, LocationReadService>();
 
+            // Register dashboard read service for retrieving data related to the dashboard,
+            // such as statistics, summaries, and other relevant information for display on the dashboard.
+            services.AddScoped<IDashboardReadService, DashboardReadService>();
+
+
             return services;
         }
     }
