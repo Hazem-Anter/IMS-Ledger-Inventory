@@ -79,10 +79,6 @@ namespace IMS.Api
                     };
                 });
 
-            // Add authorization services to the container.
-            // This allows us to use the [Authorize] attribute in our controllers to protect endpoints
-            // and ensure that only authenticated users can access them.
-            builder.Services.AddAuthorization();
             // ##########################################################################################
 
 
@@ -125,6 +121,7 @@ namespace IMS.Api
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
