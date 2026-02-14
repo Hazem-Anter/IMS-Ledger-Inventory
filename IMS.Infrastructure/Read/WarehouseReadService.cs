@@ -1,6 +1,7 @@
 ﻿
 using IMS.Application.Abstractions.Read;
 using IMS.Application.Common.Paging;
+using IMS.Application.Features.Lookups.Dtos;
 using IMS.Application.Features.Warehouses.Queries.GetWarehouseById;
 using IMS.Application.Features.Warehouses.Queries.ListWarehouses;
 using IMS.Infrastructure.Persistence;
@@ -64,6 +65,29 @@ namespace IMS.Infrastructure.Read
 
             // 6) Return the paged result containing the list of items, total count, current page, and page size.
             return new PagedResult<WarehouseListItemDto>(items, totalCount, page, pageSize);
+        }
+
+        // Retrieves a list of warehouses for lookup purposes, optionally filtering by active status.
+        // For example, this can be used to populate dropdowns or selection lists in the UI.
+        public async Task<IReadOnlyList<WarehouseLookupDto>> LookupAsync(
+            bool activeOnly,
+            CancellationToken ct = default)
+        {
+            // 1) Start with the base query for warehouses, using AsNoTracking for read-only operations.
+            var q = _db.Warehouses.AsNoTracking().AsQueryable();
+
+            // 2) If activeOnly is true, filter the warehouses to include only those that are active.
+            if (activeOnly)
+                q = q.Where(w => w.IsActive);
+
+            // 3) Project the results to WarehouseLookupDto and order them by name before returning the list.
+            return await q
+                .OrderBy(w => w.Name)
+                .Select(w => new WarehouseLookupDto(
+                    w.Id,
+                    w.Name,
+                    w.Code))
+                .ToListAsync(ct);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿
 using IMS.Application.Common.Paging;
+using IMS.Application.Features.Lookups.Dtos;
 using IMS.Application.Features.Warehouses.Queries.GetWarehouseById;
 using IMS.Application.Features.Warehouses.Queries.ListWarehouses;
 
@@ -16,6 +17,11 @@ namespace IMS.Application.Abstractions.Read
             bool ? isActive,
             int page,
             int pageSize,
-            CancellationToken ct = default); 
+            CancellationToken ct = default);
+
+        // Lookup method to retrieve a list of warehouses for dropdowns or selection lists.
+        Task<IReadOnlyList<WarehouseLookupDto>> LookupAsync(
+            bool activeOnly,
+            CancellationToken ct = default);
     }
 }

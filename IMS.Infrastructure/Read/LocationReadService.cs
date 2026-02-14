@@ -3,6 +3,7 @@ using IMS.Application.Abstractions.Read;
 using IMS.Application.Common.Paging;
 using IMS.Application.Features.Locations.Queries.GetLocationById;
 using IMS.Application.Features.Locations.Queries.ListLocations;
+using IMS.Application.Features.Lookups.Dtos;
 using IMS.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -70,6 +71,48 @@ namespace IMS.Infrastructure.Read
 
             // 6) Return the paginated result containing the list of items and pagination metadata.
             return new PagedResult<LocationListItemDto>(items, totalCount, page, pageSize);
+        }
+
+        // Retrieves a list of locations for lookup purposes, filtered by warehouse ID, optional search term,
+        // and active status, with a limit on the number of results returned.
+        public async Task<IReadOnlyList<LocationLookupDto>> LookupByWarehouseAsync(
+            int warehouseId,
+            string? search,
+            bool activeOnly,
+            int take,
+            CancellationToken ct = default)
+        {
+            // 1) Validate and adjust the 'take' parameter to ensure it falls within a reasonable range.
+            if (take <= 0)
+                take = 20;
+            if(take > 200)
+                take = 200;
+
+            // 2) Build the base query for locations in the specified warehouse.
+            var q = _db.Locations
+                    .AsNoTracking()
+                    .Where(l => l.WarehouseId == warehouseId)
+                    .AsQueryable();
+
+            // 3) Apply filtering to include only active locations if 'activeOnly' is true.
+            if (activeOnly)
+                q = q.Where(l => l.IsActive);
+
+            // 4) Apply search filtering on the location code if a search term is provided.
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim();
+                q = q.Where(l => l.Code.Contains(s));
+            }
+
+            // 5) Order the results by location code, limit the number of results to 'take',
+            // and project to a list of LocationLookupDto.
+            return await q
+                    .OrderBy(l => l.Code)
+                    .Take(take)
+                    .Select(l => new LocationLookupDto(l.Id, l.Code ))
+                    .ToListAsync(ct);
+
         }
     }
 }

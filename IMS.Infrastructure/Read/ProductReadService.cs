@@ -1,6 +1,7 @@
 ﻿
 using IMS.Application.Abstractions.Read;
 using IMS.Application.Common.Paging;
+using IMS.Application.Features.Lookups.Dtos;
 using IMS.Application.Features.Products.Queries.GetProductById;
 using IMS.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -82,6 +83,50 @@ namespace IMS.Infrastructure.Read
 
             // 6) Return the paged result containing the list of products, total count, current page, and page size.
             return new PagedResult<ProductDetailsDto>(items, total, page, pageSize);
+        }
+
+        // Provides a lookup method to search for products based on a search term,
+        // active status, and a limit on the number of results.
+        public async Task<IReadOnlyList<ProductLookupDto>> LookupAsync(
+            string? search,
+            bool activeOnly,
+            int take,
+            CancellationToken ct = default)
+        {
+            // 1) Validate and adjust the 'take' parameter to ensure it falls within a reasonable range (1 to 50).
+            if (take <= 0) take = 20;
+            if(take > 50) take = 50;
+
+            // 2) Start with the base query for products, using AsNoTracking for read-only operations.
+            var q = _db.Products.AsNoTracking().AsQueryable();
+
+            // 3) Apply the active status filter if 'activeOnly' is true,
+            // ensuring only active products are included in the results.
+            if (activeOnly)
+                q = q.Where(p => p.IsActive);
+
+            // 4) Apply the search filter if a search term is provided.
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim();
+                q = q.Where(p =>
+                    p.Name.Contains(s) ||
+                    p.Sku.Contains(s) ||
+                    (p.Barcode != null && p.Barcode.Contains(s)));
+            }
+
+            // 5) Order the results by product name, limit the number of results to the specified 'take' value.
+            return await q
+                .OrderBy(p => p.Name)
+                .Take(take)
+                .Select(p => new ProductLookupDto(
+                    p.Id,
+                    p.Name,
+                    p.Sku,
+                    p.Barcode
+                ))
+                .ToListAsync(ct);
+
         }
     }
 }
