@@ -100,6 +100,13 @@ namespace IMS.Infrastructure
             // such as statistics, summaries, and other relevant information for display on the dashboard.
             services.AddScoped<IDashboardReadService, DashboardReadService>();
 
+            // Register identity initialization service to handle the setup of initial roles and admin user during application startup.
+            services.AddScoped<IIdentityInitializationService, IdentityInitializationService>();
+
+            // Register user and role administration services for managing users and roles in the application.
+            services.AddScoped<IUserAdminService, UserAdminService>();
+            services.AddScoped<IRoleAdminService, RoleAdminService>();
+
 
             return services;
         }

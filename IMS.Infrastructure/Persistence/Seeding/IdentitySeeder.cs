@@ -1,4 +1,10 @@
-﻿
+﻿/// <summary>
+/// 
+/// LEGACY_DO_NOT_USE
+/// 
+/// </summary>
+/// 
+
 using IMS.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
