@@ -1,0 +1,51 @@
+services:
+  ims-sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ims-sql
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+      MSSQL_SA_PASSWORD: "${SA_PASSWORD}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - ims_sql_data:/var/opt/mssql
+    # NOTE:
+    # We intentionally avoid a fragile healthcheck (bash/sqlcmd may not exist in the image).
+    # The API will tolerate SQL warm-up via retries (we add that in code next).
+
+  ims-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ims-api:latest
+    container_name: ims-api
+    restart: unless-stopped
+    depends_on:
+      - ims-sql
+    ports:
+      - "8080:8080"
+    environment:
+      # Runtime
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+
+      # DB bootstrap behavior (dev)
+      Database__AutoMigrate: "true"
+
+      # Connection strings (use same SA_PASSWORD as SQL container)
+      ConnectionStrings__ImsConnection: "Server=ims-sql;Database=IMS_Db;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
+      ConnectionStrings__AuthConnection: "Server=ims-sql;Database=IMS_AUTH_Db;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
+
+      # JWT
+      Jwt__Issuer: "ims-api"
+      Jwt__Audience: "ims-client"
+      Jwt__Secret: "${JWT_SECRET}"
+      Jwt__ExpiryMinutes: "60"
+
+      # Setup key
+      Setup__Key: "${SETUP_KEY}"
+
+volumes:
+  ims_sql_data:

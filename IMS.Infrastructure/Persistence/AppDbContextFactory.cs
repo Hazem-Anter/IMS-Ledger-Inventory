@@ -1,13 +1,12 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
 namespace IMS.Infrastructure.Persistence
 {
-    public sealed class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
+    public sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
-        public AuthDbContext CreateDbContext(string[] args)
+        public AppDbContext CreateDbContext(string[] args)
         {
             var cwd = Directory.GetCurrentDirectory();
 
@@ -23,14 +22,13 @@ namespace IMS.Infrastructure.Persistence
                 .AddEnvironmentVariables()
                 .Build();
 
+            var connectionString = config.GetConnectionString("ImsConnection")
+                ?? throw new InvalidOperationException("ImsConnection string not found.");
 
-            var connectionString = config.GetConnectionString("AuthConnection")
-                ?? throw new InvalidOperationException("AuthConnection string not found.");
-
-            var optionsBuilder = new DbContextOptionsBuilder<AuthDbContext>();
+            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
             optionsBuilder.UseSqlServer(connectionString);
 
-            return new AuthDbContext(optionsBuilder.Options);
+            return new AppDbContext(optionsBuilder.Options);
         }
     }
 }

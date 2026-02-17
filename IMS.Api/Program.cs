@@ -10,8 +10,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
 using System.Text;
 
 namespace IMS.Api
@@ -81,6 +83,9 @@ namespace IMS.Api
                         Array.Empty<string>()
                     }
                 });
+
+                c.OperationFilter<Swagger.SetupKeyHeaderOperationFilter>();
+
             });
 
 
@@ -116,6 +121,8 @@ namespace IMS.Api
             var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
                         ?? throw new InvalidOperationException("Jwt configuration is missing.");
 
+
+            // Configure the authentication services to use JWT Bearer tokens.
             builder.Services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -129,11 +136,50 @@ namespace IMS.Api
 
                         ValidIssuer = jwt.Issuer,
                         ValidAudience = jwt.Audience,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret)),
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(jwt.Secret)),
 
                         ClockSkew = TimeSpan.FromSeconds(30)
                     };
+
+                    // Add an event handler for token validation to check if the user is deactivated.
+                    // This allows us to implement a custom deactivation mechanism
+                    // where we can check if the user associated with the JWT token is still active (not deactivated)
+                    // before allowing access to protected resources.
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = async context =>
+                        {
+                            var userManager = context.HttpContext.RequestServices
+                                .GetRequiredService<UserManager<ApplicationUser>>();
+
+                            var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                            if (string.IsNullOrEmpty(userId))
+                            {
+                                context.Fail("Invalid token: missing user id.");
+                                return;
+                            }
+
+                            var user = await userManager.FindByIdAsync(userId);
+
+                            if (user == null)
+                            {
+                                context.Fail("User no longer exists.");
+                                return;
+                            }
+
+                            // This is your existing deactivation mechanism
+                            if (user.LockoutEnd.HasValue &&
+                                user.LockoutEnd.Value > DateTimeOffset.UtcNow)
+                            {
+                                context.Fail("User is deactivated.");
+                                return;
+                            }
+                        }
+                    };
                 });
+
 
             // ##########################################################################################
 
@@ -175,7 +221,12 @@ namespace IMS.Api
             // Add the global exception handling middleware to the request pipeline.
             app.UseMiddleware<GlobalExceptionMiddleware>();
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
+
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -194,6 +245,20 @@ namespace IMS.Api
 
 
             app.MapControllers();
+
+
+            // Auto-migrate databases (recommended only for Development / Docker demo)
+            if (app.Configuration.GetValue<bool>("Database:AutoMigrate"))
+            {
+                using var scope = app.Services.CreateScope();
+
+                var imsDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                await imsDb.Database.MigrateAsync();
+
+                var authDb = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+                await authDb.Database.MigrateAsync();
+            }
+
 
             await app.RunAsync();
         }
