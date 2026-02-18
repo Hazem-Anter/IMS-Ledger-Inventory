@@ -1,4 +1,5 @@
 
+using IMS.Api.Auth;
 using IMS.Api.Middleware;
 using IMS.Application;
 using IMS.Application.Abstractions.Auth;
@@ -105,6 +106,29 @@ namespace IMS.Api
 
             // Cache (used in token validation hook to reduce DB hits)
             builder.Services.AddMemoryCache();
+
+            // Authorization policies
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Policies.AdminOnly,
+                    p => p.RequireRole("Admin"));
+
+                options.AddPolicy(Policies.UserManagement,
+                    p => p.RequireRole("Admin"));
+
+                options.AddPolicy(Policies.InventoryRead,
+                    p => p.RequireRole("Admin", "Manager", "Clerk", "Auditor"));
+
+                options.AddPolicy(Policies.InventoryWrite,
+                    p => p.RequireRole("Admin", "Manager", "Clerk"));
+
+                options.AddPolicy(Policies.ReportsRead,
+                    p => p.RequireRole("Admin", "Manager", "Auditor"));
+
+                options.AddPolicy(Policies.DashboardRead,
+                    p => p.RequireRole("Admin", "Manager", "Auditor"));
+            });
+
 
             // --------------------------------------------
             // Health checks (ready = DB reachable)

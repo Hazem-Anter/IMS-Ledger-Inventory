@@ -1,4 +1,5 @@
-﻿using IMS.Api.Common;
+﻿using IMS.Api.Auth;
+using IMS.Api.Common;
 using IMS.Application.Features.Dashboard.Queries.GetDashboardSummary;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IMS.Api.Controllers
 {
-    [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
+    [Authorize(Policy = Policies.DashboardRead)]
     [ApiController]
     [Route("api/dashboard")]
     public sealed class DashboardController : ControllerBase

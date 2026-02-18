@@ -1,4 +1,5 @@
-﻿using IMS.Api.Common;
+﻿using IMS.Api.Auth;
+using IMS.Api.Common;
 using IMS.Api.Contracts.Products;
 using IMS.Application.Features.Products.Commands.ActivateProduct;
 using IMS.Application.Features.Products.Commands.CreateProduct;
@@ -15,7 +16,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IMS.Api.Controllers
 {
-    [Authorize(Roles = "Admin,Manager")]
+
+    [Authorize(Policy = Policies.InventoryRead)]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase
@@ -57,7 +59,7 @@ namespace IMS.Api.Controllers
 
         // Create a new product with the specified details,
         // including name, SKU, optional barcode, and minimum stock level.
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Policies.InventoryWrite)]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateProductRequest req, CancellationToken ct)
         {
@@ -73,7 +75,6 @@ namespace IMS.Api.Controllers
 
         // Retrieve product details by barcode,
         // allowing authorized users to look up products using their barcode information.
-        [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
         [HttpGet("by-barcode/{barcode}")]
         public async Task<IActionResult> GetByBarcode(string barcode, CancellationToken ct)
         {
@@ -86,7 +87,6 @@ namespace IMS.Api.Controllers
 
         // Retrieve product details by product ID,
         // allowing authorized users to look up products using their unique identifier.
-        [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id, CancellationToken ct)
         {
@@ -100,7 +100,6 @@ namespace IMS.Api.Controllers
         // List products with optional filtering by name or SKU or BarcodeS, and support for pagination,
 
         // GET /api/products?search=milk&isActive=true&page=1&pageSize=20
-        [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
         [HttpGet]
         public async Task<IActionResult> List(
             [FromQuery] string? search,
@@ -119,7 +118,7 @@ namespace IMS.Api.Controllers
         }
 
         // Update product details such as name, SKU, barcode, and minimum stock level,
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Policies.InventoryWrite)]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateProductRequest req, CancellationToken ct)
         {
@@ -131,7 +130,7 @@ namespace IMS.Api.Controllers
         }
 
         // Activate a product, making it available for stock movements and transactions.
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Policies.InventoryWrite)]
         [HttpPatch("{id:int}/activate")]
         public async Task<IActionResult> Activate(int id, CancellationToken ct)
         {
@@ -142,7 +141,7 @@ namespace IMS.Api.Controllers
         }
 
         // Deactivate a product, preventing it from being used in stock movements and transactions.
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Policies.InventoryWrite)]
         [HttpPatch("{id:int}/deactivate")]
         public async Task<IActionResult> Deactivate(int id, CancellationToken ct)
         {

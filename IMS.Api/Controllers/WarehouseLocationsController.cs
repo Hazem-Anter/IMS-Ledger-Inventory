@@ -1,4 +1,5 @@
-﻿using IMS.Api.Common;
+﻿using IMS.Api.Auth;
+using IMS.Api.Common;
 using IMS.Api.Contracts.Locations;
 using IMS.Application.Features.Locations.Commands.ActivateLocation;
 using IMS.Application.Features.Locations.Commands.CreateLocation;
@@ -14,6 +15,7 @@ namespace IMS.Api.Controllers;
 
 [Route("api/warehouses/{warehouseId:int}/locations")]
 [ApiController]
+[Authorize(Policy = Policies.InventoryRead)]
 public sealed class WarehouseLocationsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,7 +25,7 @@ public sealed class WarehouseLocationsController : ControllerBase
         _mediator = mediator;
     }
 
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = Policies.InventoryWrite)]
     [HttpPost]
     public async Task<IActionResult> Create(int warehouseId, [FromBody] CreateLocationRequest req, CancellationToken ct)
     {
@@ -31,7 +33,7 @@ public sealed class WarehouseLocationsController : ControllerBase
         return Ok(new CreateLocationResponse(id));
     }
 
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = Policies.InventoryWrite)]
     [HttpPut("{locationId:int}")]
     public async Task<IActionResult> Update(int warehouseId, int locationId, [FromBody] UpdateLocationRequest req, CancellationToken ct)
     {
@@ -39,7 +41,7 @@ public sealed class WarehouseLocationsController : ControllerBase
         return Ok(new { locationId = id });
     }
 
-    [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
+    
     [HttpGet]
     public async Task<IActionResult> List(
         int warehouseId,
@@ -51,7 +53,7 @@ public sealed class WarehouseLocationsController : ControllerBase
         return Ok(items);
     }
 
-    [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
+
     [HttpGet("{locationId:int}")]
     public async Task<IActionResult> GetById(int warehouseId, int locationId, CancellationToken ct)
     {
@@ -59,7 +61,7 @@ public sealed class WarehouseLocationsController : ControllerBase
         return Ok(dto);
     }
 
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = Policies.InventoryWrite)]
     [HttpPatch("{locationId:int}/activate")]
     public async Task<IActionResult> Activate(int warehouseId, int locationId, CancellationToken ct)
     {
@@ -67,7 +69,7 @@ public sealed class WarehouseLocationsController : ControllerBase
         return Ok(new { locationId = id });
     }
 
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = Policies.InventoryWrite)]
     [HttpPatch("{locationId:int}/deactivate")]
     public async Task<IActionResult> Deactivate(int warehouseId, int locationId, CancellationToken ct)
     {

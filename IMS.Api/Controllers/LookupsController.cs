@@ -1,4 +1,5 @@
-﻿using IMS.Api.Common;
+﻿using IMS.Api.Auth;
+using IMS.Api.Common;
 using IMS.Application.Features.Lookups.Queries.LocationLookup;
 using IMS.Application.Features.Lookups.Queries.ProductLookup;
 using IMS.Application.Features.Lookups.Queries.WarehouseLookup;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IMS.Api.Controllers
 {
-    [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
+    [Authorize(Policy = Policies.InventoryRead)]
     [Route("api/[controller]")]
     [ApiController]
     public class LookupsController : ControllerBase

@@ -1,4 +1,5 @@
-﻿using IMS.Api.Common;
+﻿using IMS.Api.Auth;
+using IMS.Api.Common;
 using IMS.Api.Contracts.Warehouses;
 using IMS.Application.Features.Warehouses.Commands.ActivateWarehouse;
 using IMS.Application.Features.Warehouses.Commands.CreateWarehouse;
@@ -15,6 +16,7 @@ namespace IMS.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = Policies.InventoryRead)]
     public class WarehousesController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -23,8 +25,8 @@ namespace IMS.Api.Controllers
         {
             _mediator = mediator;
         }
- 
-        [Authorize(Roles = "Admin,Manager")]
+
+        [Authorize(Policy = Policies.InventoryWrite)]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateWarehouseRequest req, CancellationToken ct)
         {
@@ -34,7 +36,7 @@ namespace IMS.Api.Controllers
             return Ok(new CreateWarehouseResponse(id));
         }
 
-        [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
+        
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id, CancellationToken ct)
         {
@@ -45,7 +47,6 @@ namespace IMS.Api.Controllers
         }
 
         // GET /api/warehouses?search=main&isActive=true&page=1&pageSize=20
-        [Authorize(Roles = "Admin,Manager,Clerk,Auditor")]
         [HttpGet]
         public async Task<IActionResult> List(
             [FromQuery] string? search,
@@ -61,7 +62,7 @@ namespace IMS.Api.Controllers
         }
 
         // PUT /api/warehouses/5 with JSON body { "name": "New Name", "code": "NEWCODE" }
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Policies.InventoryWrite)]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateWarehouseRequest req, CancellationToken ct)
         {
@@ -70,7 +71,7 @@ namespace IMS.Api.Controllers
         }
 
         // PATCH /api/warehouses/5/activate
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Policies.InventoryWrite)]
         [HttpPatch("{id:int}/activate")]
         public async Task<IActionResult> Activate(int id, CancellationToken ct)
         {
@@ -79,7 +80,7 @@ namespace IMS.Api.Controllers
         }
 
         // PATCH /api/warehouses/5/deactivate
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Policies.InventoryWrite)]
         [HttpPatch("{id:int}/deactivate")]
         public async Task<IActionResult> Deactivate(int id, CancellationToken ct)
         {

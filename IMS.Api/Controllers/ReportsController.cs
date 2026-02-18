@@ -1,4 +1,5 @@
-﻿using IMS.Api.Common;
+﻿using IMS.Api.Auth;
+using IMS.Api.Common;
 using IMS.Application.Features.Reports.Queries.DeadStock;
 using IMS.Application.Features.Reports.Queries.LowStock;
 using IMS.Application.Features.Reports.Queries.StockMovements;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IMS.Api.Controllers
 {
-    [Authorize(Roles = "Admin,Manager,Auditor")]
+    [Authorize(Policy = Policies.ReportsRead)]
     [Route("api/[controller]")]
     [ApiController]
     public class ReportsController : ControllerBase

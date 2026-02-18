@@ -1,4 +1,5 @@
-﻿using IMS.Api.Common;
+﻿using IMS.Api.Auth;
+using IMS.Api.Common;
 using IMS.Api.Contracts.Inventory;
 using IMS.Application.Features.Inventory.Commands.AdjustStock;
 using IMS.Application.Features.Inventory.Commands.IssueStock;
@@ -11,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IMS.Api.Controllers
 {
-    [Authorize(Roles = "Admin,Manager,Clerk")]
+    [Authorize(Policy = Policies.InventoryWrite)]
     [Route("api/[controller]")]
     [ApiController]
     public class InventoryController : ControllerBase

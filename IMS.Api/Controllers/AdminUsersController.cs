@@ -1,4 +1,5 @@
-﻿using IMS.Api.Common;
+﻿using IMS.Api.Auth;
+using IMS.Api.Common;
 using IMS.Api.Contracts.Admin;
 using IMS.Application.Features.Admin.Users.Commands.ActivateUser;
 using IMS.Application.Features.Admin.Users.Commands.AssignRole;
@@ -17,7 +18,7 @@ namespace IMS.Api.Controllers
 {
     [ApiController]
     [Route("api/admin/users")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = Policies.UserManagement)]
     public sealed class AdminUsersController : ControllerBase
     {
         private readonly IMediator _mediator;

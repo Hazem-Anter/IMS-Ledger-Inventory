@@ -1,4 +1,5 @@
-﻿using IMS.Api.Common;
+﻿using IMS.Api.Auth;
+using IMS.Api.Common;
 using IMS.Application.Features.Admin.Roles.Commands.CreateRole;
 using IMS.Application.Features.Admin.Roles.Commands.DeleteRole;
 using IMS.Application.Features.Admin.Roles.Queries.ListRoles;
@@ -11,7 +12,7 @@ namespace IMS.Api.Controllers
 {
     [ApiController]
     [Route("api/admin/roles")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = Policies.AdminOnly)]
     public sealed class AdminRolesController : ControllerBase
     {
         private readonly IMediator _mediator;
