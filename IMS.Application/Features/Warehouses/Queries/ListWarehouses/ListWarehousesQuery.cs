@@ -11,6 +11,6 @@ namespace IMS.Application.Features.Warehouses.Queries.ListWarehouses
         string? Search,
         bool? IsActive,
         int Page = 1,
-        int PageSize = 20
+        int PageSize = 10
     ) : IRequest<Result<PagedResult<WarehouseListItemDto>>>;
 }

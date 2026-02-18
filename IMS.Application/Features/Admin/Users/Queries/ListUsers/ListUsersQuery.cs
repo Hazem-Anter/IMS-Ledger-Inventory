@@ -8,7 +8,7 @@ namespace IMS.Application.Features.Admin.Users.Queries.ListUsers
     public sealed record ListUsersQuery(
         string? Search,
         int Page = 1,
-        int PageSize = 20
+        int PageSize = 10
         )
     : IRequest<Result<PagedResult<UserListItemDto>>>;
 }

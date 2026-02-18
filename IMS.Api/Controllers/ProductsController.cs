@@ -106,7 +106,7 @@ namespace IMS.Api.Controllers
             [FromQuery] string? search,
             [FromQuery] bool? isActive,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 50,
+            [FromQuery] int pageSize = 10,
             CancellationToken ct = default)
         {
             var query = new ListProductsQuery(search, isActive, page, pageSize);

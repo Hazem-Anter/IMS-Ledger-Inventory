@@ -36,7 +36,7 @@ namespace IMS.Api.Controllers
         public async Task<IActionResult> List(
             [FromQuery] string? search,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20,
+            [FromQuery] int pageSize = 10,
             CancellationToken ct = default)
         {
             var result = await _mediator.Send(new ListUsersQuery(search, page, pageSize), ct);

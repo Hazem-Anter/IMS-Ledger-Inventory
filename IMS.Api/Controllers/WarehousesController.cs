@@ -51,7 +51,7 @@ namespace IMS.Api.Controllers
             [FromQuery] string? search,
             [FromQuery] bool? isActive,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20,
+            [FromQuery] int pageSize = 10,
             CancellationToken ct = default)
         {
             var data = (await _mediator.Send(
