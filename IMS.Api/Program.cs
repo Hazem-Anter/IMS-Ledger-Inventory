@@ -27,6 +27,9 @@ namespace IMS.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // --------------------------------------------
+            // Controllers: Require auth globally by default
+            // --------------------------------------------
 
 
             // AddControllers with a global authorization filter. 
@@ -40,9 +43,10 @@ namespace IMS.Api
                 options.Filters.Add(new AuthorizeFilter(policy));    // Add the authorization filter to the MVC options, which applies the policy globally to all controllers and actions.
             });
 
+            //Swagger/OpenAPI
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-
 
             // Configure Swagger to include JWT authentication support.
             // This allows us to test authenticated endpoints directly from the Swagger UI by providing a JWT token.
@@ -88,16 +92,23 @@ namespace IMS.Api
 
             });
 
-
-            // Add Infrastructure Services 
+            // Layers
             builder.Services.AddInfrastructureServices(builder.Configuration);
-            // Add Application Services
             builder.Services.AddApplicationService();
+
+            // Time provider (test-friendly)
 
             // Register TimeProvider as a singleton service in the dependency injection container.
             // This allows us to inject TimeProvider into other services or controllers that require time-related functionality.
             // solve the problem of time management in the application.
             builder.Services.AddSingleton(TimeProvider.System);
+
+            // Cache (used in token validation hook to reduce DB hits)
+            builder.Services.AddMemoryCache();
+
+            // --------------------------------------------
+            // Health checks (ready = DB reachable)
+            // --------------------------------------------
 
             // Configure Health Checks for SQL Server databases
             // This section adds health checks to the application to monitor the health of the SQL Server databases used by the application.
@@ -111,7 +122,9 @@ namespace IMS.Api
                     name: "auth-db",
                     tags: new[] { "ready" });
 
-
+            // --------------------------------------------
+            // JWT Authentication
+            // --------------------------------------------
 
             // ##########################################################################################
             // Configure JWT Authentication  
@@ -222,11 +235,19 @@ namespace IMS.Api
             }
             */
 
+            // --------------------------------------------
+            // Middleware pipeline
+            // --------------------------------------------
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+
+                // Nice dev UX: open swagger from root
+                app.MapGet("/", () => Results.Redirect("/swagger"))
+                   .ExcludeFromDescription();
             }
 
             // Add the global exception handling middleware to the request pipeline.
@@ -243,6 +264,66 @@ namespace IMS.Api
             app.UseAuthorization();
 
 
+            // --------------------------------------------
+            // Startup: Auto-migrate with retry (BEFORE endpoints)
+            // --------------------------------------------
+
+            // Run database migrations on startup if the configuration setting "Database:AutoMigrate" is set to true.
+            // This ensures that the database schema is automatically updated to match the latest migrations when the application starts.
+            if (app.Configuration.GetValue<bool>("Database:AutoMigrate"))
+            {
+                // 1) Define the maximum number of migration attempts and the delay between attempts.
+                const int maxAttempts = 10;
+                const int delaySeconds = 3;
+
+                // 2) Create a new scope to access the required services for database migration,
+                // such as the DbContexts and logger.
+                using var scope = app.Services.CreateScope();
+                var logger = scope.ServiceProvider
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("DatabaseMigration");
+
+                // 3) Attempt to run the database migrations with retry logic.
+                for (int attempt = 1; attempt <= maxAttempts; attempt++)
+                {
+                    try
+                    {
+                        // a- Log the start of the migration attempt.
+                        logger.LogInformation("Running database migrations (attempt {Attempt}/{Max})", attempt, maxAttempts);
+
+                        // b- Retrieve the AppDbContext and AuthDbContext from the service provider and run the migrations asynchronously.
+                        var imsDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        await imsDb.Database.MigrateAsync();
+
+                        var authDb = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+                        await authDb.Database.MigrateAsync();
+
+                        // c- If the migrations succeed, log a success message and break out of the retry loop.
+                        logger.LogInformation("Database migrations completed successfully.");
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        // a- If an exception occurs during migration, log a warning message with the exception details and the current attempt number.
+                        logger.LogWarning(ex,
+                            "Database migration attempt {Attempt} failed. Retrying in {Delay}s...",
+                            attempt, delaySeconds);
+
+                        // b- If the maximum number of attempts has been reached, rethrow the exception to prevent the application from starting with an inconsistent database state.
+                        if (attempt == maxAttempts)
+                            throw;
+
+                        // c- Wait for a specified delay before retrying the migration. This helps to handle transient issues such as temporary database connectivity problems.
+                        await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+                    }
+                }
+
+            }
+
+            // --------------------------------------------
+            // Health endpoints
+            // --------------------------------------------
+
             // Configure health check endpoints for liveness and readiness probes.
             app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
             {
@@ -254,22 +335,8 @@ namespace IMS.Api
                 Predicate = r => r.Tags.Contains("ready") // readiness: DB checks
             });
 
-
+            // Controllers
             app.MapControllers();
-
-
-            // Auto-migrate databases (recommended only for Development / Docker demo)
-            if (app.Configuration.GetValue<bool>("Database:AutoMigrate"))
-            {
-                using var scope = app.Services.CreateScope();
-
-                var imsDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                await imsDb.Database.MigrateAsync();
-
-                var authDb = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-                await authDb.Database.MigrateAsync();
-            }
-
 
             await app.RunAsync();
         }
