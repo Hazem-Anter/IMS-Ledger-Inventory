@@ -48,8 +48,8 @@ namespace IMS.Api.Controllers
         public async Task<IActionResult> AssignRole(int userId, [FromBody] RoleRequest req, CancellationToken ct)
         {
             var result = await _mediator.Send(new AssignRoleCommand(userId, req.Role), ct);
-            result.OkOrThrow();
-            return NoContent();
+
+            return Ok(result.OkOrThrow());
         }
 
         // POST: api/admin/users/{userId}/roles/remove
@@ -57,8 +57,8 @@ namespace IMS.Api.Controllers
         public async Task<IActionResult> RemoveRole(int userId, [FromBody] RoleRequest req, CancellationToken ct)
         {
             var result = await _mediator.Send(new RemoveRoleCommand(userId, req.Role), ct);
-            result.OkOrThrow();
-            return NoContent();
+            
+            return Ok(result.OkOrThrow());
         }
 
         // POST: api/admin/users/{userId}/password/reset
@@ -74,8 +74,8 @@ namespace IMS.Api.Controllers
         public async Task<IActionResult> Deactivate(int userId, CancellationToken ct)
         {
             var result = await _mediator.Send(new DeactivateUserCommand(userId), ct);
-            result.OkOrThrow();
-            return NoContent();
+
+            return Ok(result.OkOrThrow());
         }
 
         // PATCH: api/admin/users/{userId}/activate
@@ -83,8 +83,8 @@ namespace IMS.Api.Controllers
         public async Task<IActionResult> Activate(int userId, CancellationToken ct)
         {
             var result = await _mediator.Send(new ActivateUserCommand(userId), ct);
-            result.OkOrThrow();
-            return NoContent();
+
+            return Ok(result.OkOrThrow());
         }
 
         // GET: api/admin/users/{userId}

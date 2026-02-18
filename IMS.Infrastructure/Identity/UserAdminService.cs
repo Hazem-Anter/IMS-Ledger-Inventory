@@ -72,8 +72,14 @@ namespace IMS.Infrastructure.Identity
             // call the AddToRoleAsync method of the UserManager to add the user to the specified role.
             var r = await _users.AddToRoleAsync(user, role);
 
-            // 6) Return true if the operation succeeded, and false otherwise.
+            // 6) If the role assignment succeeded,
+            // update the user's security stamp by calling the UpdateSecurityStampAsync method of the UserManager.
+            if (r.Succeeded)
+                await _users.UpdateSecurityStampAsync(user);
+
+            // 7) Return true if the role assignment succeeded, and false otherwise.
             return r.Succeeded ? true : false;
+
         }
 
         // This method changes the password of a user. It first retrieves the user by their ID,
@@ -91,7 +97,12 @@ namespace IMS.Infrastructure.Identity
             // 3) Use the generated token to reset the user's password to the new value provided by calling the ResetPasswordAsync method of the UserManager.
             var r = await _users.ResetPasswordAsync(user, token, newPassword);
 
-            // 4) Return true if the operation succeeded, and false otherwise.
+            // 4) If the password reset succeeded,
+            // update the user's security stamp by calling the UpdateSecurityStampAsync method of the UserManager.
+            if (r.Succeeded)
+                await _users.UpdateSecurityStampAsync(user);
+
+            // 5) Return true if the password change succeeded, and false otherwise.
             return r.Succeeded ? true : false;
         }
 
@@ -240,6 +251,12 @@ namespace IMS.Infrastructure.Identity
 
             // 5) If the user is currently in the role, call the RemoveFromRoleAsync method of the UserManager to remove the user from the specified role.
             var r = await _users.RemoveFromRoleAsync(user, role);
+
+            // 6) If the role removal succeeded, update the user's security stamp by calling the UpdateSecurityStampAsync method of the UserManager.
+            if (r.Succeeded)
+                await _users.UpdateSecurityStampAsync(user);
+
+            // 7) Return true if the role removal succeeded, and false otherwise.
             return r.Succeeded ? true : false;
         }
     }

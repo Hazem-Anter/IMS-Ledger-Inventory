@@ -33,8 +33,8 @@ namespace IMS.Infrastructure.Identity
             var ok = await _signIn.CheckPasswordSignInAsync(user, password, lockoutOnFailure: true);
             if (!ok.Succeeded) return null;
 
-            // 3) If the credentials are valid, return an AuthUser object containing the user's ID and email.
-            return new AuthUser(user.Id, user.Email!);
+            // 3) If the user is found and the password is correct, return an AuthUser object containing the user's ID, email, and security stamp.
+            return new AuthUser(user.Id, user.Email!, user.SecurityStamp);
         }
 
         // This method retrieves the roles associated with a user based on their user ID.

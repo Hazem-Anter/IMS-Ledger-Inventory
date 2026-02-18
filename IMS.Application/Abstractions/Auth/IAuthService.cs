@@ -14,7 +14,9 @@ namespace IMS.Application.Abstractions.Auth
 
     }
 
-    public sealed record AuthUser(int UserId, string Email);
+    // Application needs the stamp value so it can be embedded in the JWT (without Application touching EF).
+    // The stamp value is used to invalidate JWTs when the user changes their password or logs out from all devices.
+    public sealed record AuthUser(int UserId, string Email, string SecurityStamp);
 
 
     public sealed record CreateUserResult(int UserId, string Email, IReadOnlyList<string> Roles);

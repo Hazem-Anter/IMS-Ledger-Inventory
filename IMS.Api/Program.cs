@@ -142,42 +142,53 @@ namespace IMS.Api
                         ClockSkew = TimeSpan.FromSeconds(30)
                     };
 
-                    // Add an event handler for token validation to check if the user is deactivated.
-                    // This allows us to implement a custom deactivation mechanism
-                    // where we can check if the user associated with the JWT token is still active (not deactivated)
-                    // before allowing access to protected resources.
+                    // Add custom event handlers for JWT token validation.
+                    // This allows us to perform additional checks when a token is validated
                     options.Events = new JwtBearerEvents
                     {
+                        // OnTokenValidated is called after the token has been validated by the default JWT validation logic.
                         OnTokenValidated = async context =>
                         {
+                            // 1) Retrieve the UserManager service from the dependency injection container to access user information.
                             var userManager = context.HttpContext.RequestServices
                                 .GetRequiredService<UserManager<ApplicationUser>>();
 
+                            // 2) Extract the user ID from the token's claims.
+                            // If the user ID is missing or invalid, fail the authentication.
                             var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                            if (string.IsNullOrEmpty(userId))
+                            if (string.IsNullOrWhiteSpace(userId))
                             {
-                                context.Fail("Invalid token: missing user id.");
+                                context.Fail("Invalid token (missing user id).");
                                 return;
                             }
 
+                            // 3) Retrieve the user from the database using the UserManager.
                             var user = await userManager.FindByIdAsync(userId);
-
-                            if (user == null)
+                            if (user is null)
                             {
                                 context.Fail("User no longer exists.");
                                 return;
                             }
 
-                            // This is your existing deactivation mechanism
-                            if (user.LockoutEnd.HasValue &&
-                                user.LockoutEnd.Value > DateTimeOffset.UtcNow)
+                            // 4) Check if the user is locked out (deactivated).
+                            // If the LockoutEnd property has a value and is in the future,
+                            // it means the user is currently locked out, and we should fail the authentication.
+                            if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow)
                             {
                                 context.Fail("User is deactivated.");
                                 return;
                             }
+
+                            // 5) Validate the security stamp to ensure the token is still valid.
+                            var tokenStamp = context.Principal?.FindFirstValue("sstamp");
+                            if (string.IsNullOrWhiteSpace(tokenStamp) || tokenStamp != user.SecurityStamp)
+                            {
+                                context.Fail("Token is no longer valid.");
+                                return;
+                            }
                         }
                     };
+
                 });
 
 

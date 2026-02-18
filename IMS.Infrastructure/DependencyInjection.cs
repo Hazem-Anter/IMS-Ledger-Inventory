@@ -72,8 +72,8 @@ namespace IMS.Infrastructure
             })
             .AddRoles<IdentityRole<int>>()  // Add support for roles with integer keys
             .AddEntityFrameworkStores<AuthDbContext>()  // Use AuthDbContext for Identity stores. Ex : user and role management, and other related tables. 
-            .AddSignInManager();    // Add SignInManager for handling user sign-in operations. Ex : login, logout, and other related functionalities.
-
+            .AddSignInManager()    // Add SignInManager for handling user sign-in operations. Ex : login, logout, and other related functionalities.
+            .AddDefaultTokenProviders();  // Add default token providers for generating tokens for password resets, email confirmations, etc.
 
             // Register JWT token service and configure JWT options from configuration
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));

@@ -22,7 +22,11 @@ namespace IMS.Infrastructure.Identity.Token
         }
 
         // The CreateToken method generates a JWT token for a given user ID, email, and roles.
-        public JwtTokenResult CreateToken(int userId, string email, IReadOnlyCollection<string> roles)
+        public JwtTokenResult CreateToken(
+            int userId,
+            string email,
+            string securityStamp,
+            IReadOnlyCollection<string> roles)
         {
             // 1) Set the current time and calculate the token's expiration time based on the configured expiry minutes.
             var now = DateTime.UtcNow;
@@ -30,12 +34,18 @@ namespace IMS.Infrastructure.Identity.Token
 
             // 2) Create a list of claims that will be included in the token.
             // This includes the user's ID, email, and a unique identifier (JTI).
-            // (JTI) : is a unique identifier for the token, which can be used to prevent token replay attacks. Example: if a token is stolen, the JTI can be used to identify and invalidate that specific token.
+            // (JTI) : is a unique identifier for the token,
+            // which can be used to prevent token replay attacks.
+            // Example: if a token is stolen, the JTI can be used to identify and invalidate that specific token.
+
+            // The "sstamp" claim is added to include the user's security stamp,
+            // which can be used to invalidate tokens if the user's security information changes (e.g., password reset).
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("sstamp", securityStamp)
             };
             // Add claims for each role the user has. This allows the token to carry information about the user's permissions and access levels.
             foreach (var role in roles)

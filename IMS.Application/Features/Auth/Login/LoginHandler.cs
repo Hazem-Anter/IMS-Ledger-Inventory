@@ -34,8 +34,9 @@ namespace IMS.Application.Features.Auth.Login
             var roles = await _auth.GetRolesAsync(user.UserId, ct);
 
             // 3) Generate a JWT token for the user using the JWT token service,
-            // including the user's ID, email, and roles in the token claims.
-            var token = _jwt.CreateToken(user.UserId, user.Email, roles);
+            // including the user's ID, email, security stamp, and roles.
+            // The security stamp is used to ensure that the token is invalidated if the user's security information changes (e.g., password reset).
+            var token = _jwt.CreateToken(user.UserId, user.Email, user.SecurityStamp, roles);
 
             // 4) Return a successful result containing an AuthResponse object with the generated token,
             return Result<AuthResponse>.Ok(
