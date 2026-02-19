@@ -235,6 +235,23 @@ namespace IMS.Api
             // Register the global exception handling middleware as a transient service in the dependency injection container.
             builder.Services.AddTransient<GlobalExceptionMiddleware>();
 
+            // Add CORS policy
+            var allowedOrigins = builder.Configuration
+                .GetSection("Cors:AllowedOrigins")
+                .Get<string[]>() ?? [];
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("Frontend", policy =>
+                {
+                    policy
+                        .WithOrigins(allowedOrigins)
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
+
             var app = builder.Build();
 
             /*
@@ -282,6 +299,9 @@ namespace IMS.Api
             {
                 app.UseHttpsRedirection();
             }
+
+            // Use the configured CORS policy to allow cross-origin requests from the frontend application.
+            app.UseCors("Frontend");
 
 
             app.UseAuthentication();

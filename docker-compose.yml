@@ -47,5 +47,8 @@ services:
       # Setup key
       Setup__Key: "${SETUP_KEY}"
 
+      # ✅ CORS (Angular dev server)
+      Cors__AllowedOrigins__0: "http://localhost:4200"
+
 volumes:
   ims_sql_data:
