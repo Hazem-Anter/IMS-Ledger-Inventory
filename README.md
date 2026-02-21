@@ -230,9 +230,7 @@ GET /api/inventory/movements
 
 ### Setup
 
-![Authentication](docs/set%20up/1.png)
-
----
+![Set up](docs/set%20up/1.png)
 
 ---
 
@@ -246,8 +244,6 @@ GET /api/inventory/movements
 ### Products Endpoints
 
 ![Products](docs/Products%20Endpoints/1.png)
-
----
 
 ---
 
