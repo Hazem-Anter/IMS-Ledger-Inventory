@@ -1,75 +1,83 @@
-# Inventory Management System (IMS) — Backend
+# Inventory Management System (IMS) — Backend API
 
-A production-grade **Inventory Management System (IMS) backend** built using **ASP.NET Core 8**, **Clean Architecture**, and **CQRS with MediatR**.  
-This system provides secure, scalable, and auditable inventory and warehouse management suitable for real-world business and freelance deployment.
+Production-ready backend API demonstrating enterprise architecture and scalable inventory management using ASP.NET Core 8, Clean Architecture, and CQRS.
+
+This system is designed for real-world business use and freelance deployment scenarios.
 
 ---
 
 ## Overview
 
-The IMS backend provides complete inventory management functionality including:
+The Inventory Management System (IMS) Backend is a RESTful API that provides complete inventory and warehouse management functionality.
 
-- Product management
-- Warehouse and location management
-- Inventory transactions (receive, issue, adjust, transfer)
-- User and role management
-- Audit tracking
-- Reporting and stock movement history
+Core capabilities include:
 
-The project follows enterprise-grade architecture patterns and is fully containerized using Docker.
+* Product management
+* Warehouse and location management
+* Inventory transactions (receive, issue, adjust, transfer)
+* User and role management
+* Audit tracking
+* Reporting and stock movement history
+
+The system follows enterprise-grade architecture patterns and is fully containerized using Docker.
 
 ---
 
 ## Architecture
 
-This project follows **Clean Architecture** principles to ensure maintainability, scalability, and separation of concerns.
-
+This project follows Clean Architecture principles to ensure scalability, maintainability, and separation of concerns.
+```
 IMS
 ├── IMS.Domain → Core business entities and rules
 ├── IMS.Application → CQRS handlers, interfaces, validation, business logic
 ├── IMS.Infrastructure → EF Core, Identity, persistence, external integrations
-└── IMS.Api → Controllers, middleware, authentication, startup
+└── IMS.Api → Controllers, middleware, authentication, configuration
+```
+---
 
-
-### Request Flow
-
+## Request Flow
+```
 Client
 ↓
-API Controller (Thin)
+API Controller (Thin Controller)
 ↓
-MediatR Command/Query
+MediatR Command or Query
 ↓
-Application Layer
+Application Layer (Business Logic)
 ↓
-Infrastructure Layer
+Infrastructure Layer (Database Access)
 ↓
 SQL Server Database
-
+```
 ---
 
 ## Technology Stack
 
 ### Backend
-- ASP.NET Core 8 Web API
-- C#
-- MediatR (CQRS pattern)
-- Entity Framework Core
-- ASP.NET Identity
-- FluentValidation
+
+* ASP.NET Core 8 Web API
+* C#
+* MediatR (CQRS pattern)
+* Entity Framework Core
+* ASP.NET Identity
+* FluentValidation
 
 ### Database
-- SQL Server
+
+* SQL Server
 
 ### Security
-- JWT Authentication
-- Role-based Authorization
-- SecurityStamp validation for token revocation
+
+* JWT Authentication
+* Role-based Authorization
+* SecurityStamp validation for token revocation
 
 ### DevOps
-- Docker
-- Docker Compose
-- Health Checks
-- Environment-based configuration
+
+* Docker
+* Docker Compose
+* Health Checks
+* Environment-based configuration
 
 ---
 
@@ -77,24 +85,25 @@ SQL Server Database
 
 ### Authentication and Authorization
 
-- Secure JWT-based authentication
-- ASP.NET Identity integration
-- Role-based authorization system
+* Secure JWT-based authentication
+* ASP.NET Identity integration
+* Role-based authorization system
 
 Supported roles:
 
-- Admin
-- Manager
-- Clerk
-- Auditor
+* Admin
+* Manager
+* Clerk
+* Auditor
 
 Security hardening includes:
 
-- Token revocation using SecurityStamp
-- Immediate token invalidation when:
-  - Password changes
-  - Roles change
-  - User is deactivated
+* Token revocation using SecurityStamp
+* Immediate token invalidation when:
+
+  * Password changes
+  * Roles change
+  * User is deactivated
 
 ---
 
@@ -102,27 +111,28 @@ Security hardening includes:
 
 Admin users can:
 
-- View users
-- Assign and remove roles
-- Activate and deactivate users
-- Reset passwords
+* View users
+* Assign roles
+* Activate and deactivate users
+* Reset passwords
 
 ---
 
 ### Product Management
 
-- Create and update products
-- Activate and deactivate products
-- Track product stock history
-- View product timeline
+* Create products
+* Update products
+* Activate and deactivate products
+* Track product stock history
+* View product timeline
 
 ---
 
 ### Warehouse and Location Management
 
-- Create and manage warehouses
-- Create and manage warehouse locations
-- Track stock per warehouse and location
+* Create warehouses
+* Manage warehouse locations
+* Track stock per warehouse and location
 
 ---
 
@@ -130,10 +140,10 @@ Admin users can:
 
 Supports full inventory lifecycle:
 
-- Receive stock
-- Issue stock
-- Adjust stock
-- Transfer stock between warehouses
+* Receive stock
+* Issue stock
+* Transfer stock between warehouses
+* Adjust stock
 
 All operations are fully auditable.
 
@@ -141,24 +151,71 @@ All operations are fully auditable.
 
 ### Reporting
 
-Provides reporting features such as:
+Provides reporting capabilities:
 
-- Stock movement reports
-- Product timeline reports
-- Inventory summaries
+* Stock movement reports
+* Product timeline reports
+* Inventory summaries
 
 ---
 
 ### Audit and Traceability
 
-The system tracks:
+Tracks:
 
-- CreatedAt / UpdatedAt
-- CreatedBy / UpdatedBy
-- Full inventory transaction history
+* CreatedAt / UpdatedAt timestamps
+* CreatedBy / UpdatedBy users
+* Complete inventory movement history
 
-Ensuring full traceability.
+Ensuring full system traceability.
 
+---
+
+## API Endpoints (Example)
+
+### Authentication
+```
+POST /api/auth/login
+POST /api/auth/register
+```
+---
+
+### Products
+```
+GET /api/products
+GET /api/products/{id}
+POST /api/products
+PUT /api/products/{id}
+PUT /api/products/{id}/activate
+PUT /api/products/{id}/deactivate
+```
+---
+
+### Warehouses
+```
+GET /api/warehouses
+GET /api/warehouses/{id}
+POST /api/warehouses
+PUT /api/warehouses/{id}
+```
+---
+
+### Locations
+```
+GET /api/locations
+POST /api/locations
+```
+---
+
+### Inventory
+```
+POST /api/inventory/receive
+POST /api/inventory/issue
+POST /api/inventory/transfer
+POST /api/inventory/adjust
+
+GET /api/inventory/movements
+```
 ---
 
 ## Enterprise Patterns Used
@@ -167,9 +224,10 @@ Ensuring full traceability.
 
 Benefits:
 
-- Clear separation of concerns
-- Testable and maintainable
-- Scalable design
+* Separation of concerns
+* High maintainability
+* Scalable structure
+* Testable design
 
 ---
 
@@ -177,158 +235,182 @@ Benefits:
 
 Separates:
 
-- Commands (write operations)
-- Queries (read operations)
+* Commands (write operations)
+* Queries (read operations)
 
 Benefits:
 
-- Clean and organized business logic
-- Improved scalability
+* Clean business logic
+* Improved scalability
+* Better organization
 
 ---
 
 ### Result Pattern
 
-Uses `Result<T>` for consistent API responses.
+Uses Result<T> for consistent API responses.
 
 Benefits:
 
-- Standardized error handling
-- Predictable API behavior
+* Standardized responses
+* Predictable error handling
 
 ---
 
-### Pipeline Behaviors
+### MediatR Pipeline Behaviors
 
-Implemented MediatR pipeline behaviors:
+Implemented behaviors:
 
-- LoggingBehavior
-- ValidationBehavior
-- TransactionBehavior
-- CachingBehavior
-- CacheInvalidationBehavior
+* LoggingBehavior
+* ValidationBehavior
+* TransactionBehavior
+* CachingBehavior
+* CacheInvalidationBehavior
 
 ---
 
 ### FluentValidation
 
-Validation is handled in the Application layer.
+Validation handled in Application layer.
 
 Benefits:
 
-- Thin controllers
-- Centralized validation
-- Clean architecture compliance
+* Thin controllers
+* Centralized validation
+* Clean architecture compliance
 
 ---
 
 ## Security Features
 
-- JWT Authentication
-- Role-based Authorization
-- SecurityStamp token validation
-- Global exception handling middleware
-- Setup key protection for initialization
+* JWT Authentication
+* Role-based Authorization
+* SecurityStamp validation
+* Global exception handling middleware
+* Setup key protection for initialization
 
 ---
 
 ## Health Checks
 
-Health endpoints:
-
+Endpoints:
+```
 GET /health/live
 GET /health/ready
-
+```
 Used for monitoring and deployment readiness.
 
 ---
 
 ## Docker Deployment
 
-The system is fully containerized.
+Fully containerized system.
 
 Services:
 
-- ims-api
-- ims-sql
+* ims-api
+* ims-sql
 
 Run using:
 
-```bash
 docker compose up --build
 
-Configuration
+---
 
-Environment variables supported:
+## Environment Configuration
+
+Supported environment variables:
+```
 ConnectionStrings__ImsConnection
 ConnectionStrings__AuthConnection
-
+```
+```
 Jwt__Issuer
 Jwt__Audience
 Jwt__Secret
 Jwt__ExpiryMinutes
-
+```
+```
 Database__AutoMigrate
+```
+```
 SETUP_KEY
-Setup Initialization
+```
+---
 
-The system provides a secure initialization endpoint to create:
+## Setup Initialization
 
-Roles
+Secure initialization endpoint allows creation of:
 
-First Admin user
+* Roles
+* First Admin user
 
 Protected using Setup Key.
 
-API Design Principles
+---
 
-Thin controllers
+## How to Run Locally
 
-Business logic in Application layer
+1. Clone repository
 
-CQRS separation
+git clone https://github.com/YOUR_USERNAME/inventory-management-api.git
 
-Clean and consistent response structure
+2. Navigate to project folder
 
-RESTful API design
+cd inventory-management-api
 
-Production Readiness
+3. Run using Docker
 
-This backend is production-ready with:
+docker compose up --build
 
-Secure authentication
+4. Open Swagger UI
 
-Scalable architecture
-
-Docker deployment
-
-Health monitoring
-
-Audit tracking
-
-Role-based authorization
-
-Future Enhancements
-
-Possible extensions:
-
-Angular frontend
-
-Redis caching
-
-Cloud deployment (Azure / AWS)
-
-CI/CD pipeline
-
-Author
-
-Hazem Mohamed Anter
-Full Stack Developer (.NET)
-
-License
-
-This project is intended for educational, portfolio, and professional use.
+http://localhost:8080/swagger
 
 ---
 
-If you want, I can also create a **README with architecture diagrams and badges (Docker, .NET, SQL Server, Clean Architecture)** to look more impressive to recruiters.
+## API Design Principles
+
+* Thin controllers
+* Business logic in Application layer
+* CQRS separation
+* Consistent response structure
+* RESTful API design
+
+---
+
+## Production Readiness
+
+This backend is production-ready with:
+
+* Secure authentication
+* Scalable architecture
+* Docker deployment
+* Health monitoring
+* Audit tracking
+* Role-based authorization
+
+---
+
+## Future Enhancements
+
+Possible extensions:
+
+* Angular frontend integration
+* Redis caching
+* Cloud deployment (Azure / AWS)
+* CI/CD pipeline
+
+---
+
+## Author
+
+Hazem Mohamed Anter
+ASP.NET Core Backend Developer
+Specialized in Clean Architecture and REST API development
+
+---
+
+## License
+
+This project is intended for educational, portfolio, and professional use.
