@@ -217,7 +217,28 @@ POST /api/inventory/adjust
 GET /api/inventory/movements
 ```
 ---
+## API Documentation
 
+### Swagger Overview
+
+![Swagger Overview](docs/Swagger-Overview)
+
+### Authentication Endpoint
+
+![Auth Login](docs/swagger-auth-login.png)
+
+### Products Endpoints
+
+![Products](docs/swagger-products.png)
+
+### Inventory Endpoints
+
+![Inventory](docs/swagger-inventory.png)
+
+### Docker Deployment
+
+![Docker](docs/docker-running.png)
+---
 ## Enterprise Patterns Used
 
 ### Clean Architecture
