@@ -323,12 +323,12 @@ Supported environment variables:
 
 ConnectionStrings__ImsConnection
 ConnectionStrings__AuthConnection
-
+```
 Jwt__Issuer
 Jwt__Audience
 Jwt__Secret
 Jwt__ExpiryMinutes
-
+```
 Database__AutoMigrate
 
 SETUP_KEY
