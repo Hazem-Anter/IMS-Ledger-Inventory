@@ -221,7 +221,7 @@ GET /api/inventory/movements
 
 ### Swagger Overview
 
-![Swagger Overview](docs/Swagger-Overview)
+![Swagger Overview](docs/Swagger-Overview/1.png)
 
 ### Authentication Endpoint
 
