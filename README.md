@@ -26,17 +26,17 @@ The system follows enterprise-grade architecture patterns and is fully container
 ## Architecture
 
 This project follows Clean Architecture principles to ensure scalability, maintainability, and separation of concerns.
-
+```
 IMS
 ├── IMS.Domain → Core business entities and rules
 ├── IMS.Application → CQRS handlers, interfaces, validation, business logic
 ├── IMS.Infrastructure → EF Core, Identity, persistence, external integrations
 └── IMS.Api → Controllers, middleware, authentication, configuration
-
+```
 ---
 
 ## Request Flow
-
+```
 Client
 ↓
 API Controller (Thin Controller)
@@ -48,7 +48,7 @@ Application Layer (Business Logic)
 Infrastructure Layer (Database Access)
 ↓
 SQL Server Database
-
+```
 ---
 
 ## Technology Stack
@@ -174,48 +174,48 @@ Ensuring full system traceability.
 ## API Endpoints (Example)
 
 ### Authentication
-
+```
 POST /api/auth/login
 POST /api/auth/register
-
+```
 ---
 
 ### Products
-
+```
 GET /api/products
 GET /api/products/{id}
 POST /api/products
 PUT /api/products/{id}
 PUT /api/products/{id}/activate
 PUT /api/products/{id}/deactivate
-
+```
 ---
 
 ### Warehouses
-
+```
 GET /api/warehouses
 GET /api/warehouses/{id}
 POST /api/warehouses
 PUT /api/warehouses/{id}
-
+```
 ---
 
 ### Locations
-
+```
 GET /api/locations
 POST /api/locations
-
+```
 ---
 
 ### Inventory
-
+```
 POST /api/inventory/receive
 POST /api/inventory/issue
 POST /api/inventory/transfer
 POST /api/inventory/adjust
 
 GET /api/inventory/movements
-
+```
 ---
 
 ## Enterprise Patterns Used
@@ -294,10 +294,10 @@ Benefits:
 ## Health Checks
 
 Endpoints:
-
+```
 GET /health/live
 GET /health/ready
-
+```
 Used for monitoring and deployment readiness.
 
 ---
