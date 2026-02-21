@@ -217,27 +217,59 @@ POST /api/inventory/adjust
 GET /api/inventory/movements
 ```
 ---
+
 ## API Documentation
 
 ### Swagger Overview
 
-![Swagger Overview](docs/Swagger-Overview/1.png)
+![Swagger Overview](docs/Swagger%20Overview/1.png)
+![Swagger Overview](docs/Swagger%20Overview/2.png)
+![Swagger Overview](docs/Swagger%20Overview/3.png)
 
-### Authentication Endpoint
+---
 
-![Auth Login](docs/swagger-auth-login.png)
+### Setup
+
+![Authentication](docs/set%20up/1.png)
+
+---
+
+---
+
+### Authentication
+
+![Authentication](docs/Authentication/1.png)
+![Authentication](docs/Authentication/2.png)
+
+---
 
 ### Products Endpoints
 
-![Products](docs/swagger-products.png)
+![Products](docs/Products%20Endpoints/1.png)
 
-### Inventory Endpoints
+---
 
-![Inventory](docs/swagger-inventory.png)
+---
+
+### Reports Endpoints
+
+![Products](docs/Reports/1.png)
+![Products](docs/Reports/2.png)
+![Products](docs/Reports/3.png)
+
+---
+
+### Inventory Operations
+
+![Inventory](docs/Inventory%20Operations/1.png)
+![Inventory](docs/Inventory%20Operations/2.png)
+
+---
 
 ### Docker Deployment
 
-![Docker](docs/docker-running.png)
+![Docker](docs/Docker%20Deployment/1.png)
+
 ---
 ## Enterprise Patterns Used
 
