@@ -404,11 +404,11 @@ Possible extensions:
 ---
 
 ## Author
-
+```
 Hazem Mohamed Anter
 ASP.NET Core Backend Developer
 Specialized in Clean Architecture and REST API development
-
+```
 ---
 
 ## License
