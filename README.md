@@ -365,7 +365,7 @@ docker compose up --build
 
 4. Open Swagger UI
 
-http://localhost:5000/swagger
+http://localhost:8080/swagger
 
 ---
 
