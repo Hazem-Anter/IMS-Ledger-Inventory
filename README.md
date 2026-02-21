@@ -219,6 +219,7 @@ GET /api/inventory/movements
 ---
 
 ## API Documentation
+![Photos](docs)
 
 ### Swagger Overview
 
@@ -230,7 +231,7 @@ GET /api/inventory/movements
 
 ### Setup
 
-![Set up](docs/set%20up/1.png)
+![Set up](docs/Set%20up/1.png)
 
 ---
 
